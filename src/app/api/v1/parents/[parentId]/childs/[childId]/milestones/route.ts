@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Res } from "@/lib/general-response"; // tumhara custom response helper
+import { Res } from "@/lib/general-response";
 import { ApiResponse } from "@/lib/types";
 
 export async function POST(

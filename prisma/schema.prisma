@@ -96,12 +96,33 @@ model Parent {
   chatParticipants ChatParticipant[]
   milestones       Milestone[]
 
-  folders Folder[] @relation("ParentFolders") 
-  uploadedImages  Image[]  @relation("ParentImages")
-  Folder          Folder[]
+  folders          Folder[] @relation("ParentFolders") 
+  uploadedImages   Image[]  @relation("ParentImages")
+  Folder           Folder[]
+  Music            Music[]
 
   @@map("parents")
 }
+
+model Music {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  url       String
+  mimeType  String
+  size      Int
+  type      MusicType  @default(FREE)
+  price     Float?
+  thumbnail String
+
+  uploadedById String   @db.ObjectId
+  uploadedBy   Parent   @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("musics")
+}
+
 
 model Folder {
   id         String     @id @default(auto()) @map("_id") @db.ObjectId
@@ -349,6 +370,11 @@ enum Relation {
   AUNT
   BROTHER
   SISTER
+}
+
+enum MusicType {
+  FREE
+  PAID
 }
 
 enum OrderStatus {

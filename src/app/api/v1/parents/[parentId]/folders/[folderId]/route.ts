@@ -2,7 +2,6 @@ import { Res } from "@/lib/general-response";
 import { prisma } from "@/lib/prisma";
 import { NextRequest } from "next/server";
 import { uploadFileToS3 } from "@/lib/helpers/s3";
-import { Buffer } from "buffer";
 
 export async function POST(
     req: NextRequest,

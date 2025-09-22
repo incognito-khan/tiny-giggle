@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadFileToS3 } from "@/lib/helpers/s3";
-import { Buffer } from "buffer";
 
 export async function POST(req: NextRequest) {
   try {
