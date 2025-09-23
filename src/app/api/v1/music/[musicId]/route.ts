@@ -8,7 +8,7 @@ export async function GET(
     { params }: { params: Promise<{ musicId: string }> }
 ): Promise<NextResponse<ApiResponse>> {
     try {
-        const { musicId } = await params;
+        const { musicId } = await params; // musicId from params
         const musics = await prisma.music.findMany({
             where: { id: musicId },
             orderBy: { createdAt: "desc" },
