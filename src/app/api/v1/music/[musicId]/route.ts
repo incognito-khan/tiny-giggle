@@ -8,10 +8,9 @@ export async function GET(
     { params }: { params: Promise<{ musicId: string }> }
 ): Promise<NextResponse<ApiResponse>> {
     try {
-        const { musicId } = await params; // musicId from params
-        const musics = await prisma.music.findMany({
+        const { musicId } = await params;
+        const music = await prisma.music.findUnique({
             where: { id: musicId },
-            orderBy: { createdAt: "desc" },
             select: {
                 id: true,
                 title: true,
@@ -27,13 +26,15 @@ export async function GET(
                         name: true,
                         email: true
                     }
-                }
+                },
+                createdAt: true,
+                updatedAt: true
             }
         });
 
         return Res.success({
-            message: "All music fetched successfully",
-            data: musics,
+            message: "Music fetched successfully",
+            data: music,
         });
     } catch (error) {
         console.error("Music fetch error:", error);
