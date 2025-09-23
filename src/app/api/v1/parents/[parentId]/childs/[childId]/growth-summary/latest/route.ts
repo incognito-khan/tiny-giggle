@@ -28,7 +28,7 @@ export async function GET(
     });
     return Res.success({
       message: "Growth summary",
-      data: growthSummary,
+      data: growthSummary || {},
     });
   } catch (error) {
     return Res.serverError();
