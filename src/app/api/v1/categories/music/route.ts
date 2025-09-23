@@ -4,39 +4,39 @@ import { Res } from "@/lib/general-response";
 import { ApiResponse } from "@/lib/types";
 
 export async function POST(
-  req: NextRequest,
+  req: NextRequest
 ): Promise<NextResponse<ApiResponse>> {
   try {
     const body = await req.json();
-    const { title, url, mimeType, size, uploadedBy, type, price, thumbnail } = body;
+    const { name, slug, adminId } = body;
 
-    // Validation
-    if (!title || !url || !mimeType || !size) {
-      return Res.badRequest({
-        message: "title, url, mimeType, and size are required",
-      });
+    if (!name || !slug || !adminId) {
+      return Res.badRequest({ message: "Name, slug and adminId are required" });
     }
 
-    // Music create
-    const music = await prisma.music.create({
+    const category = await prisma.musicCategory.create({
       data: {
-        title,
-        url,
-        mimeType,
-        size,
-        type,
-        price,
-        thumbnail,
-        uploadedById: uploadedBy,
+        name,
+        slug,
+        adminId,
       },
     });
 
-    return Res.created({
-      message: "Music created successfully",
-      data: music,
+    return Res.success({
+      message: "Music Category created successfully",
+      data: {
+        id: category.id,
+        name: category.name,
+        slug: category.slug
+      },
     });
-  } catch (error) {
-    console.error("Music create error:", error);
+  } catch (error: any) {
+    if (error.code === "P2002") {
+      return Res.error({
+        message: "Slug already exists",
+        status: 409,
+      });
+    }
     return Res.serverError();
   }
 }
@@ -62,7 +62,8 @@ export async function GET(
             name: true,
             email: true
           }
-        }
+        },
+        categoryId: true
       }
     });
 

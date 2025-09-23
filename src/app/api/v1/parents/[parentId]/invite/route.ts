@@ -29,7 +29,7 @@ export async function POST(
     if (!existingParent) {
       return Res.notFound({ message: "No parent found" });
     }
-    const firstChildId = existingParent?.childIds?.[0]; // 👈 Get first child ID
+    const firstChildId = existingParent?.childIds?.[0];
     if (!firstChildId) {
       return Res.notFound({
         message: "No child found, please create child first",

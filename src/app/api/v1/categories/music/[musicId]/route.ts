@@ -28,7 +28,14 @@ export async function GET(
                     }
                 },
                 createdAt: true,
-                updatedAt: true
+                updatedAt: true,
+                category: {
+                    select: {
+                        id: true,
+                        name: true,
+                        slug: true
+                    }
+                }
             }
         });
 

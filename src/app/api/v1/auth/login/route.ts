@@ -42,6 +42,12 @@ export async function POST(
             }
           }
         },
+        favorites: {
+          select: {
+            id: true,
+            musicId: true
+          }
+        }
       },
     });
     if (!existingUser) {
@@ -82,6 +88,7 @@ export async function POST(
           role: existingUser.type,
           childs: existingUser.childIds,
           folders: existingUser.folders,
+          favoriteMusic: existingUser.favorites
         },
         tokens: {
           accessToken,

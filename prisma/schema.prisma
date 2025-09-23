@@ -8,13 +8,14 @@ datasource db {
 }
 
 model Admin {
-  id         String     @id @default(auto()) @map("_id") @db.ObjectId
-  name       String
-  email      String     @unique
-  password   String
-  categories Category[]
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  id              String     @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  email           String     @unique
+  password        String
+  categories      Category[]
+  musicCategories MusicCategory[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
   @@map("admins")
 }
@@ -30,6 +31,19 @@ model Category {
   products  Product[]
 
   @@map("categories")
+}
+
+model MusicCategory {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  admin     Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  adminId   String    @db.ObjectId
+  musics    Music[]
+
+  @@map("music_categories")
 }
 
 model Product {
@@ -100,8 +114,40 @@ model Parent {
   uploadedImages   Image[]  @relation("ParentImages")
   Folder           Folder[]
   Music            Music[]
+  activities       Activity[]
+  favorites        Favorite[]
 
   @@map("parents")
+}
+
+model Activity {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  time      DateTime
+
+  parent    Parent   @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  parentId  String   @db.ObjectId
+
+  child     Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  childId   String   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("activities")
+}
+
+model Favorite {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  parentId  String   @db.ObjectId
+  musicId   String   @db.ObjectId
+  createdAt DateTime @default(now())
+
+  parent    Parent   @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  music     Music    @relation(fields: [musicId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, musicId])
+  @@map("favorites")
 }
 
 model Music {
@@ -112,10 +158,15 @@ model Music {
   size      Int
   type      MusicType  @default(FREE)
   price     Float?
-  thumbnail String
+  thumbnail String?
 
   uploadedById String   @db.ObjectId
   uploadedBy   Parent   @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  category      MusicCategory?    @relation(fields: [categoryId], references: [id])
+  categoryId    String?      @db.ObjectId
+
+  favorites     Favorite[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -246,6 +297,7 @@ model Child {
   growthSummaries GrowthSummary[]
   vaccinations    Vaccination[]
   milestones      Milestone[]
+  activities      Activity[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
