@@ -2,9 +2,9 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Res } from "@/lib/general-response";
 
-export async function GET(req: NextRequest, { params }: { params: { parentId: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ parentId: string }> }) {
     try {
-        const { parentId } = params;
+        const { parentId } = await params;
 
         if (!parentId) return Res.badRequest({ message: "Parent ID is required" });
 

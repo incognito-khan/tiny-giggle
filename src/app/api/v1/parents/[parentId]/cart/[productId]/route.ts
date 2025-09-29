@@ -98,9 +98,9 @@ export async function POST(
     }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { productId: string; parentId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ productId: string; parentId: string }> }) {
     try {
-        const { productId, parentId } = params;
+        const { productId, parentId } = await params;
         const body = await req.json();
         const { reduceBy } = body;
 
@@ -151,9 +151,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { productId:
     }
 }
 
-export async function DELETE(req: NextRequest, context: { params: { parentId: string; productId: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ parentId: string; productId: string }> }) {
     try {
-        const { parentId, productId } = context.params;
+        const { parentId, productId } = await params;
 
         if (!parentId) return Res.badRequest({ message: "Parent ID is required" });
         if (!productId) return Res.badRequest({ message: "Product ID is required" });
