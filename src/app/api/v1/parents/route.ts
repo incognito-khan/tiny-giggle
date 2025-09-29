@@ -4,6 +4,7 @@ import { verifyAccessTokenFromRequest } from "@/lib/tokens";
 import { ApiResponse } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
 
+// fixed prisma build errors on cart apis
 export async function GET(
   req: NextRequest
 ): Promise<NextResponse<ApiResponse>> {
@@ -23,4 +24,4 @@ export async function GET(
   } catch (error) {
     return Res.serverError();
   }
-}
+};
