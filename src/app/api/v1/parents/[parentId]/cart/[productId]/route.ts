@@ -151,9 +151,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { productId:
     }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { parentId: string; productId: string } }) {
+export async function DELETE(req: NextRequest, context: { params: { parentId: string; productId: string } }) {
     try {
-        const { parentId, productId } = params;
+        const { parentId, productId } = context.params;
 
         if (!parentId) return Res.badRequest({ message: "Parent ID is required" });
         if (!productId) return Res.badRequest({ message: "Product ID is required" });
