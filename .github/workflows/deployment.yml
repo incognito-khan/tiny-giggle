@@ -1,0 +1,87 @@
+name: Deploy to Contabo Server (Tiny-Giggle-Web)
+
+on:
+  push:
+    branches:
+      - staging-branch
+      - live-branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up SSH agent and add private key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.CONTABO_SSH_KEY }}
+
+      - name: Deploy to Contabo
+        env:
+          STAGING_REMOTE_DIR: ${{ secrets.STAGING_REMOTE_DIR }}
+          STAGING_IMAGE_NAME: ${{ secrets.STAGING_IMAGE_NAME }}
+          STAGING_PORT: ${{ secrets.STAGING_PORT }}
+          LIVE_REMOTE_DIR: ${{ secrets.LIVE_REMOTE_DIR }}
+          LIVE_IMAGE_NAME: ${{ secrets.LIVE_IMAGE_NAME }}
+          LIVE_PORT: ${{ secrets.LIVE_PORT }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          set -e
+
+          BRANCH="${GITHUB_REF##*/}"
+          echo "Branch: $BRANCH"
+
+          if [[ "$BRANCH" == "staging-branch" ]]; then
+            REMOTE_DIR="$STAGING_REMOTE_DIR"
+            IMAGE_NAME="$STAGING_IMAGE_NAME"
+            PORT="$STAGING_PORT"
+          elif [[ "$BRANCH" == "live-branch" ]]; then
+            REMOTE_DIR="$LIVE_REMOTE_DIR"
+            IMAGE_NAME="$LIVE_IMAGE_NAME"
+            PORT="$LIVE_PORT"
+          else
+            echo "Unknown branch: $BRANCH"
+            exit 1
+          fi
+
+          echo "Deploying to $SERVER_HOST ($REMOTE_DIR)..."
+
+          ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST "
+            set -e
+            cd /root/$REMOTE_DIR
+
+            echo 'Resetting repo and pulling latest changes...'
+            git reset --hard
+            git clean -fd -e .env
+            git pull origin $BRANCH
+
+            # Build new image with temporary tag
+            echo 'Building new Docker image (temp tag)...'
+            docker build -t ${IMAGE_NAME}:temp .
+
+            # Stop & remove old container only if build succeeds
+            echo 'Stopping existing Docker container...'
+            docker stop $IMAGE_NAME || true
+            docker rm $IMAGE_NAME || true
+
+            # Remove old image now that new one is built
+            echo 'Removing old Docker image...'
+            docker rmi -f ${IMAGE_NAME}:latest || true
+
+            # Tag temp image as latest
+            echo 'Tagging new image as latest...'
+            docker tag ${IMAGE_NAME}:temp ${IMAGE_NAME}:latest
+
+            # Remove temp tag (optional cleanup)
+            docker rmi ${IMAGE_NAME}:temp || true
+
+            # Run new container
+            echo 'Starting new Docker container...'
+            docker run -d --restart unless-stopped --name $IMAGE_NAME -p $PORT:3000 $IMAGE_NAME:latest
+            
+            echo 'Deployment complete.'
+          "
