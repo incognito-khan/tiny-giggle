@@ -4,15 +4,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-package-lock.json
-yarn.lock
 .pnpm-debug.log
 
-# Build output
+# Build output (keep these out of build context)
 dist/
 build/
 .cache/
-.next/
 out/
 coverage/
 
@@ -43,3 +40,14 @@ Thumbs.db
 *.tmp
 *.temp
 *.orig
+
+# Git
+.git
+.gitignore
+
+# CI/CD
+.github
+
+# Documentation
+README.md
+*.md
