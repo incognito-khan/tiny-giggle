@@ -10,7 +10,7 @@ COPY package.json ./
 # Install all dependencies
 RUN npm install
 
-# Copy the rest of the project files
+# Copy the rest of the project files (including .env)
 COPY . .
 
 # Generate Prisma Client
@@ -27,11 +27,12 @@ WORKDIR /app
 # Set to production
 ENV NODE_ENV=production
 
-# Copy package.json
+# Copy package.json and .env
 COPY package.json ./
+COPY .env ./
 
-# Install dependencies
-RUN npm install --production
+# Install production dependencies
+RUN npm install
 
 # Copy Prisma schema and generate client
 COPY --from=builder /app/prisma ./prisma
