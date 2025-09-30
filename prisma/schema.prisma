@@ -60,8 +60,38 @@ model Product {
   category      Category    @relation(fields: [categoryId], references: [id])
   categoryId    String      @db.ObjectId
   orderProducts OrderItem[]
+  cartItems     CartItem[]
 
   @@map("products")
+}
+
+model Cart {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  items     CartItem[]
+
+  parent    Parent     @relation(fields: [parentId], references: [id])
+  parentId  String     @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  cartId    String   @db.ObjectId
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String   @db.ObjectId
+  quantity  Int
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId])
+  @@map("cart_items")
 }
 
 model Order {
@@ -116,6 +146,7 @@ model Parent {
   Music            Music[]
   activities       Activity[]
   favorites        Favorite[]
+  carts            Cart[]
 
   @@map("parents")
 }
@@ -215,8 +246,8 @@ model Image {
 model Chat {
   id        String @id @default(auto()) @map("_id") @db.ObjectId
   title     String
-  parent    Parent @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  creatorId String @db.ObjectId
+  parent    Parent? @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  creatorId String? @db.ObjectId
 
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
