@@ -81,7 +81,7 @@ jobs:
 
             # Run new container
             echo 'Starting new Docker container...'
-            docker run -d --restart unless-stopped --name $IMAGE_NAME -p $PORT:3000 $IMAGE_NAME:latest
+            docker run -d --restart unless-stopped --name $IMAGE_NAME -p 127.0.0.1:$PORT:3000 $IMAGE_NAME:latest
 
             
             echo 'Deployment complete.'
