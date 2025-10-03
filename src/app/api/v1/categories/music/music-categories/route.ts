@@ -12,7 +12,12 @@ export async function GET(
         id: true,
         name: true,
         slug: true,
+        createdAt: true,
+        _count: {
+          select: { musics: true },
+        },
       },
+      orderBy: { createdAt: "desc" },
     });
     return Res.success({
       message: "Music Categories fetch successfully",

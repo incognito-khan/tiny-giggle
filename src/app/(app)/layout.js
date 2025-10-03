@@ -6,6 +6,7 @@ import { baloo2, roboto, amaticSC } from './fonts/fonts';
 import { AppProvider } from "@/components/appProvider/appProvider";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,20 +30,22 @@ export default function RootLayout({ children }) {
       <body
         className={`${baloo2.variable} ${roboto.variable} antialiased`}
       >
-        <AppProvider>
-          <Navbar />
-          {children}
-          <Footer />
-          <ToastContainer
-            position="top-right"
-            autoClose={2000}
-            hideProgressBar={false}
-            newestOnTop
-            closeOnClick
-            pauseOnHover
-            draggable
-          />
-        </AppProvider>
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
+          <AppProvider>
+            <Navbar />
+            {children}
+            <Footer />
+            <ToastContainer
+              position="top-right"
+              autoClose={2000}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              pauseOnHover
+              draggable
+            />
+          </AppProvider>
+        </GoogleOAuthProvider>
       </body>
     </html>
   );

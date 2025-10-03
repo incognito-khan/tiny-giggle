@@ -246,8 +246,8 @@ model Image {
 model Chat {
   id        String @id @default(auto()) @map("_id") @db.ObjectId
   title     String
-  parent    Parent @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  creatorId String @db.ObjectId
+  parent    Parent? @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  creatorId String? @db.ObjectId
 
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt

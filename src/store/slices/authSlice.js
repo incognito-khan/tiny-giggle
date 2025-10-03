@@ -24,7 +24,7 @@ export const signupUser = createAsyncThunk(
             setLoading(true);
             const { data } = await axios.post(`/api/v1/auth/signup`, body);
             toast.success(data?.message)
-            router.push(`/otp?email=${formData?.email}&type=SIGNUP`);
+            router.push(`/otp?email=${body?.email}&type=SIGNUP`);
             return data;
         } catch (err) {
             return rejectWithValue(err.response?.data || "Signup failed");
@@ -87,6 +87,39 @@ export const login = createAsyncThunk(
             const error = err.response?.data;
             toast.error(error?.message || "Login Failed");
             return rejectWithValue(error || "Login Failed");
+        } finally {
+            setLoading(false);
+        }
+    }
+);
+
+export const googleLogin = createAsyncThunk(
+    "auth/googleLogin",
+    async ({ token, router, setLoading }, { rejectWithValue, dispatch }) => {
+        try {
+            setLoading(true);
+            const response = await axios.post(`/api/v1/auth/google`, { token });
+            const resData = response.data;
+
+            if (response.status === 200 && resData?.data?.user) {
+                toast.success(resData.message);
+                dispatch(setChilds(resData?.data?.user?.childs));
+                dispatch(setMusicFavorites(resData?.data?.user?.favoriteMusic));
+                dispatch(setFolders(resData?.data?.user?.folders));
+                router.push("/");
+            } else {
+                toast.error(resData.message || "Login Failed");
+                return rejectWithValue(resData.message || "Login Failed");
+            }
+
+            localStorage.setItem("user", JSON.stringify(resData.data.user));
+            localStorage.setItem("token", resData.data.tokens.accessToken);
+
+            return resData?.data;
+        } catch (err) {
+            const error = err.response?.data;
+            toast.error(error.error || "Google Login Failed");
+            return rejectWithValue(error || "Google Login Failed");
         } finally {
             setLoading(false);
         }
@@ -169,6 +202,10 @@ const authSlice = createSlice({
     extraReducers: (builder) => {
         builder
             .addCase(login.fulfilled, (state, action) => {
+                state.user = action.payload?.user || {};
+                state.isUserLoggedIn = true;
+            })
+            .addCase(googleLogin.fulfilled, (state, action) => {
                 state.user = action.payload?.user || {};
                 state.isUserLoggedIn = true;
             })

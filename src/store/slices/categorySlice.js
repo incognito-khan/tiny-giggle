@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { POST, GET } from '@/lib/api';
+import { POST, GET, DELETE, PATCH } from '@/lib/api';
 import { toast } from "react-toastify";
 
 const initialState = {
@@ -41,6 +41,56 @@ export const getAllCategories = createAsyncThunk(
     }
 );
 
+export const updateCategory = createAsyncThunk(
+    "category/updateCategory",
+    async ({ setLoading, categoryId, formData }) => {
+        try {
+            setLoading(true);
+            const { data } = await PATCH(`/categories/${categoryId}`, formData);
+            toast.success("Category Updated Successfully");
+            return data.data;
+        } catch (err) {
+            toast.error(err.response?.data || "Updating Category Failed")
+            return rejectWithValue(err.response?.data || "Updating Category Failed");
+        } finally {
+            setLoading(false);
+        }
+    }
+);
+
+export const delCategory = createAsyncThunk(
+    "category/delCategory",
+    async ({ setLoading, categoryId }) => {
+        try {
+            setLoading(true);
+            const { data } = await DELETE(`/categories/${categoryId}`);
+            toast.success("Category Deleted Successfully");
+            return data.data;
+        } catch (err) {
+            toast.error(err.response?.data || "Deleting Category Failed")
+            return rejectWithValue(err.response?.data || "Deleting Category Failed");
+        } finally {
+            setLoading(false);
+        }
+    }
+);
+
+export const addMusicCategory = createAsyncThunk(
+    "category/addMusicCategory",
+    async ({ setLoading, formData }, { rejectWithValue }) => {
+        try {
+            setLoading(true);
+            const { data } = await POST(`/categories/music`, formData);
+            return data.data;
+        } catch (err) {
+            toast.error(err.response?.data || "Creating Music Category Failed")
+            return rejectWithValue(err.response?.data || "Creating Music Category Failed");
+        } finally {
+            setLoading(false);
+        }
+    }
+);
+
 export const getAllMusicCategories = createAsyncThunk(
     "category/getAllMusicCategories",
     async ({ setLoading }) => {
@@ -66,8 +116,24 @@ const categorySlice = createSlice({
             .addCase(createCategory.fulfilled, (state, action) => {
                 state.categories.unshift(action.payload);
             })
+            .addCase(addMusicCategory.fulfilled, (state, action) => {
+                state.categories.unshift(action.payload);
+            })
             .addCase(getAllCategories.fulfilled, (state, action) => {
                 state.categories = action.payload;
+            })
+            .addCase(updateCategory.fulfilled, (state, action) => {
+                if (action.payload) {
+                    const index = state.categories.findIndex(category => category.id === action.payload.id);
+                    if (index !== -1) {
+                        state.categories[index] = action.payload;
+                    }
+                }
+            })
+            .addCase(delCategory.fulfilled, (state, action) => {
+                if (action.payload) {
+                    state.categories = state.categories.filter(category => category.id !== action.payload);
+                }
             })
             .addCase(getAllMusicCategories.fulfilled, (state, action) => {
                 state.categories = action.payload;

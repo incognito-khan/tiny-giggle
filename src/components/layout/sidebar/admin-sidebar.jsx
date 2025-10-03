@@ -1,11 +1,12 @@
 "use client"
-import { Search, Plus, Edit, Trash2, Home, Package, ShoppingCart, Archive, Users, Settings, LogOut } from "lucide-react"
+import { Search, Plus, Edit, Trash2, Home, Package, ShoppingCart, Archive, Users, Settings, LogOut, Music } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 const sidebarItems = [
   { icon: Home, label: "Dashboard", active: false, href: "" },
   { icon: Package, label: "Category", active: false, href: "/admin-dashboard/categories" },
+  { icon: Music, label: "Music Category", active: false, href: "/admin-dashboard/music-categories" },
   { icon: Archive, label: "Products", active: false, href: "/admin-dashboard/products" },
   { icon: ShoppingCart, label: "Shopping", active: false, href: "" },
   { icon: Archive, label: "Stock", active: false, href: "" },
