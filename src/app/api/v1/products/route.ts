@@ -4,7 +4,17 @@ import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
   try {
+    const url = new URL(req.url);
+    const search = url.searchParams.get("search")?.trim();
+
+    // Build where clause
+    const whereClause: any = {};
+    if (search) {
+      whereClause.name = { contains: search, mode: "insensitive" };
+    }
+    
     const products = await prisma.product.findMany({
+      where: whereClause,
       include: {
         category: {
           select: {

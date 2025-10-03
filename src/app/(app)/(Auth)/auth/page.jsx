@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa6";
 import { motion, AnimatePresence } from "framer-motion";
-import { signupUser, login } from "@/store/slices/authSlice";
+import { signupUser, login, googleLogin } from "@/store/slices/authSlice";
 import { useDispatch } from "react-redux";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Loading from "@/components/loading";
 import ReCAPTCHA from "react-google-recaptcha";
 import { toast } from "react-toastify";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function SignUp() {
   const [activeTab, setActiveTab] = useState("signup");
@@ -114,7 +115,7 @@ export default function SignUp() {
 
     dispatch(
       signupUser({
-        formData: formData,
+        body: formData,
         router,
         setLoading,
       })
@@ -170,8 +171,12 @@ export default function SignUp() {
     dispatch(login({ body, router, setLoading }));
   };
 
-  const emailRegex = /^\S+@\S+\.\S+$/;
-  console.log(emailRegex.test("abc@gmail.com"));
+  const handleSuccess = async (credentialResponse) => {
+    const token = credentialResponse?.credential;
+    if (!token) return;
+
+    dispatch(googleLogin({ token, router, setLoading }));
+  };
 
   return (
     <div
@@ -473,7 +478,7 @@ export default function SignUp() {
               {/* Social Login Buttons */}
               <div className="space-y-3">
                 {/* Google Button */}
-                <button
+                {/* <button
                   type="button"
                   className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
@@ -481,7 +486,15 @@ export default function SignUp() {
                   <span className="text-[#EA4335] font-medium">
                     Continue with Google
                   </span>
-                </button>
+                </button> */}
+
+                <GoogleLogin
+                  onSuccess={handleSuccess}
+                  onError={() => {
+                    console.error("Google Login Failed");
+                  }}
+                  useOneTap
+                />
 
                 {/* Facebook Button */}
                 <button

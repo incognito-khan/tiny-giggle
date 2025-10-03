@@ -20,15 +20,16 @@ export async function POST(
         slug,
         adminId,
       },
+      include: {
+        _count: {
+          select: { musics: true },
+        },
+      },
     });
 
     return Res.success({
       message: "Music Category created successfully",
-      data: {
-        id: category.id,
-        name: category.name,
-        slug: category.slug
-      },
+      data: category
     });
   } catch (error: any) {
     if (error.code === "P2002") {
