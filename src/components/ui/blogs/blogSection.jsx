@@ -225,7 +225,7 @@ export default function BlogSection() {
 
               {/* Subscribe Button */}
               <button className="w-full bg-[#dd8808] text-white font-bold py-4 px-6 rounded-lg hover:bg-brand transition-colors duration-300 uppercase tracking-wider">
-                ADMISSION
+                JOIN NOW
               </button>
             </div>
           </div>

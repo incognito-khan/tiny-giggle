@@ -8,9 +8,9 @@ import { tabContent } from "@/components/data/home/learning";
 
 export default function LearningOpportunity() {
 
-  const [activeTab, setActiveTab] = useState("Play & Learn")
+  const [activeTab, setActiveTab] = useState("Growth & Milestones")
 
-  const tabs = ["Play & Learn", "Creative Activites", "Nap & Care"]
+  const tabs = ["Growth & Milestones", "Memories", "Shopping & Music"]
 
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
@@ -161,8 +161,8 @@ export default function LearningOpportunity() {
                         initial="hidden"
                         animate={subControls}
                     >
-                        {"School Facilities".split("").map((ch, i) => (
-                            <motion.span key={i} variants={charVariant} aria-hidden="true">
+                        {"Why Choose Tiny Giggle".split(" ").map((ch, i) => (
+                            <motion.span key={i} variants={charVariant} aria-hidden="true" className="inline-block mr-1">
                                 {ch}
                             </motion.span>
                         ))}
@@ -175,7 +175,7 @@ export default function LearningOpportunity() {
                         initial="hidden"
                         animate={mainControls}
                     >
-                        {"School Facilities Learning Opportunity For kids".split("").map((ch, i) => (
+                        {"Track, Shop & Celebrate Your Child's Journey".split("").map((ch, i) => (
                             <motion.span key={i} variants={charVariant} aria-hidden="true">
                                 {ch}
                             </motion.span>

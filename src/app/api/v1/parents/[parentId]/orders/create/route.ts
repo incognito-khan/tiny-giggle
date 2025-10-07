@@ -15,9 +15,14 @@ type Data = {
 };
 
 export async function POST(
-  req: NextRequest
+  req: NextRequest,
+  { params }: { params: Promise<{ parentId: string; }> }
 ): Promise<NextResponse<ApiResponse>> {
   try {
+    const { parentId } = await params;
+    if (!parentId) {
+      return Res.badRequest({ message: "Parent ID is required" });
+    }
     const {
       shippingAddress,
       totalPrice,
@@ -36,6 +41,7 @@ export async function POST(
     }
     const order = await prisma.order.create({
       data: {
+        parentId,
         shippingAddress,
         totalPrice,
         orderStatus,

@@ -64,7 +64,12 @@ export async function GET(
             email: true
           }
         },
-        categoryId: true
+        category: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
       }
     });
 

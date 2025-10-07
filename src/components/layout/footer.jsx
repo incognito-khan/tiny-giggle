@@ -195,7 +195,7 @@ export default function Footer() {
               <a href="#" className="text-white hover:text-brabg-brand transition-colors duration-300 text-sm">
                 Terms & Conditions
               </a>
-              <a href="#" className="text-white hover:text-brabg-brand transition-colors duration-300 text-sm">
+              <a href="/privacy-policy" className="text-white hover:text-brabg-brand transition-colors duration-300 text-sm">
                 Privacy Policy
               </a>
             </div>

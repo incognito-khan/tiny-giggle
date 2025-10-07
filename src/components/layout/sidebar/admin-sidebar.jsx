@@ -8,6 +8,7 @@ const sidebarItems = [
   { icon: Package, label: "Category", active: false, href: "/admin-dashboard/categories" },
   { icon: Music, label: "Music Category", active: false, href: "/admin-dashboard/music-categories" },
   { icon: Archive, label: "Products", active: false, href: "/admin-dashboard/products" },
+  { icon: Music, label: "Music", active: false, href: "/admin-dashboard/music" },
   { icon: ShoppingCart, label: "Shopping", active: false, href: "" },
   { icon: Archive, label: "Stock", active: false, href: "" },
   { icon: Users, label: "Supplier", active: false, href: "" },

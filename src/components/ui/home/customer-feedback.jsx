@@ -59,11 +59,16 @@ export default function CustomerFeedback() {
 
           {/* Header */}
           <div className="mb-8">
-            <p className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-2">FAQ Feedback</p>
-            <h2 className="text-4xl font-bold leading-tight">
+            <p className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-2">Parent & Family Reviews</p>
+            {/* <h2 className="text-4xl font-bold leading-tight">
               Customer <span className="text-orange-500">Feedback</span> For
               <br />
               school
+            </h2> */}
+            <h2 className="text-4xl font-bold leading-tight">
+              What <span className="text-orange-500">Families</span> Say About
+              <br />
+              Tiny Giggle
             </h2>
           </div>
 

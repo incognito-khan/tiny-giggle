@@ -12,8 +12,8 @@ export default function SchoolFacilities() {
   const mainControls = useAnimation()
   const inView = useInView(ref, { once: false, amount: 0.4 })
 
-  const subText = "Session Times"
-  const headingText = "Your kids Are 100% Safe at Our Care."
+  const subText = "Tiny Giggle Features"
+  const headingText = "Everything Your Child Needs in One Place."
 
   // Variant for individual characters
   const charVariant = {
@@ -61,7 +61,7 @@ export default function SchoolFacilities() {
             initial="hidden"
             animate={subControls}
           >
-            {"School Facilities".split("").map((ch, i) => (
+            {"Tiny Giggle Features".split("").map((ch, i) => (
               <motion.span key={i} variants={charVariant} aria-hidden="true">
                 {ch}
               </motion.span>
@@ -75,8 +75,8 @@ export default function SchoolFacilities() {
             initial="hidden"
             animate={mainControls}
           >
-            {"Engaging & Spacious School".split("").map((ch, i) => (
-              <motion.span key={i} variants={charVariant} aria-hidden="true">
+            {"Everything Your Child Needs in One Place".split(" ").map((ch, i) => (
+              <motion.span key={i} variants={charVariant} aria-hidden="true" className="inline-block mr-1">
                 {ch}
               </motion.span>
             ))}

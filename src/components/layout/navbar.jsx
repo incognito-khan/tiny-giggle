@@ -53,9 +53,9 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4" />
-            <span className="text-yellow-400 font-medium">Opening Time :</span>
-            <span>9:30am-5:30pm</span>
+            {/* <Clock className="w-4 h-4" /> */}
+            <span className="text-yellow-400 font-medium">Tiny Giggle :</span>
+            <span>Where family meets memories & growth</span>
           </div>
 
           <div className="flex items-center gap-3">

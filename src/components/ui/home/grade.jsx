@@ -83,9 +83,9 @@ export default function GradePrograms() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="text-white">
-              <p className="text-sm font-medium tracking-wider uppercase mb-2 opacity-90">Grade Level</p>
-              <h2 className="text-5xl font-bold mb-4 leading-tight">Grade Programs</h2>
-              <p className="text-lg mb-8 opacity-90">Work And Play Come Together ?</p>
+              <p className="text-sm font-medium tracking-wider uppercase mb-2 opacity-90">Our Services</p>
+              <h2 className="text-5xl font-bold mb-4 leading-tight">What We Offer</h2>
+              <p className="text-lg mb-8 opacity-90">Explore our range of professional solutions crafted to meet your needs efficiently and effectively.</p>
 
               {/* Navigation Buttons */}
               <div className="flex gap-4">

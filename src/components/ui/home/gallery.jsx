@@ -54,8 +54,8 @@ export default function Gallery() {
             initial="hidden"
             animate={subControls}
           >
-            {"School Gallery".split("").map((ch, i) => (
-              <motion.span key={i} variants={charVariant} aria-hidden="true">
+            {"Tiny Giggle Gallery".split(" ").map((ch, i) => (
+              <motion.span key={i} variants={charVariant} aria-hidden="true" className="inline-block mr-1">
                 {ch}
               </motion.span>
             ))}
@@ -68,8 +68,8 @@ export default function Gallery() {
             initial="hidden"
             animate={mainControls}
           >
-            {"Our Gallery For Kids".split("").map((ch, i) => (
-              <motion.span key={i} variants={charVariant} aria-hidden="true">
+            {"Cherish & Relive Your Child's Precious Moments".split(" ").map((ch, i) => (
+              <motion.span key={i} variants={charVariant} aria-hidden="true" className="inline-block mr-1">
                 {ch}
               </motion.span>
             ))}
@@ -95,8 +95,8 @@ export default function Gallery() {
                 <Eye className="w-6 h-6 text-white" />
               </div>
               <div className="text-white text-center ">
-                <div className="text-sm uppercase tracking-wider mb-1 hover:text-[#70167E] transition-all duration-300">School</div>
-                <div className="text-xl font-bold hover:text-[#70167E] transition-all duration-300">Creative Play</div>
+                <div className="text-sm uppercase tracking-wider mb-1 hover:text-[#70167E] transition-all duration-300">Growth Tracker</div>
+                <div className="text-xl font-bold hover:text-[#70167E] transition-all duration-300">Track height, weight & milestones</div>
               </div>
             </div>
           </div>
@@ -118,8 +118,8 @@ export default function Gallery() {
                 <Eye className="w-6 h-6 text-white" />
               </div>
               <div className="text-white text-center">
-                <div className="text-sm uppercase tracking-wider mb-1">School</div>
-                <div className="text-xl font-bold">Art Class</div>
+                <div className="text-sm uppercase tracking-wider mb-1">Memories</div>
+                <div className="text-xl font-bold">Upload photos & videos</div>
               </div>
             </div>
           </div>
@@ -139,8 +139,8 @@ export default function Gallery() {
                 <Eye className="w-6 h-6 text-white" />
               </div>
               <div className="text-white text-center">
-                <div className="text-sm uppercase tracking-wider mb-1">School</div>
-                <div className="text-xl font-bold">Paint Activity</div>
+                <div className="text-sm uppercase tracking-wider mb-1">Tiny Giggle Shopping</div>
+                <div className="text-xl font-bold">Toys, clothes & gifts</div>
               </div>
             </div>
           </div>
@@ -160,8 +160,8 @@ export default function Gallery() {
                 <Eye className="w-6 h-6 text-white" />
               </div>
               <div className="text-white text-center">
-                <div className="text-sm uppercase tracking-wider mb-1">School</div>
-                <div className="text-xl font-bold">Learning Fun</div>
+                <div className="text-sm uppercase tracking-wider mb-1">Music & Fun</div>
+                <div className="text-xl font-bold">Free & paid music for your child</div>
               </div>
             </div>
           </div>

@@ -97,7 +97,7 @@ export default function KidsActivities() {
               initial="hidden"
               animate={subControls}
             >
-              {"Introducing Playroom".split("").map((ch, i) => (
+              {"Discover Tiny Giggle".split("").map((ch, i) => (
                 <motion.span key={i} variants={charVariant} aria-hidden="true">
                   {ch}
                 </motion.span>
@@ -111,7 +111,7 @@ export default function KidsActivities() {
               initial="hidden"
               animate={mainControls}
             >
-              {"Kids Activities".split("").map((ch, i) => (
+              {"Fun & Growth Activities".split("").map((ch, i) => (
                 <motion.span key={i} variants={charVariant} aria-hidden="true">
                   {ch}
                 </motion.span>
@@ -120,7 +120,8 @@ export default function KidsActivities() {
 
             {/* Description */}
             <p className="text-gray-600 leading-relaxed">
-              Pre-School Has Open Doors A Offer Constantly Expanding Children Our Goal Is To Carefully Educate.
+              Tiny Giggle brings joy and learning together. Track your child’s growth, record their milestones, and
+              celebrate every small achievement with fun and interactive activities that make parenting memorable.
             </p>
           </div>
 

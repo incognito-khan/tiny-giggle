@@ -38,11 +38,34 @@ export async function POST(
                     connect: { id: categoryId },
                 },
             },
+            select: {
+                id: true,
+                title: true,
+                mimeType: true,
+                url: true,
+                size: true,
+                type: true,
+                price: true,
+                thumbnail: true,
+                uploadedBy: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true
+                    }
+                },
+                category: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
+            }
         });
 
         return Res.created({
             message: "Music created successfully",
-            data: music,
+            data: music
         });
     } catch (error) {
         console.error("Music create error:", error);

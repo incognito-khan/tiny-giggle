@@ -15,7 +15,7 @@ const page = () => {
         <SmallCards />
         <Learning />
         <PreschoolHero />
-        <Testominal />
+        {/* <Testominal /> */}
         <KidsActivities />
     </div>
   )

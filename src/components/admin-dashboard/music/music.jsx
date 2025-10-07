@@ -1,0 +1,692 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Search, Plus, Edit, Trash2, UserPlus } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { getAllProducts, createProduct, delProduct, updateProduct } from "@/store/slices/productSlice"
+import { getAllMusics, createMusic } from "@/store/slices/musicSlice"
+import { getAllMusicCategories } from "@/store/slices/categorySlice"
+import { uploadImage, uploadAudio } from "@/store/slices/mediaSlice"
+import { useDispatch, useSelector } from "react-redux"
+import Loading from "@/components/loading"
+import { toast } from "react-toastify"
+
+export function Music() {
+  const user = useSelector((state) => state.auth.user);
+  const categories = useSelector((state) => state.category.categories);
+  console.log("categories", categories);
+  const musics = useSelector((state) => state.music.musics);
+  console.log("musics", musics);
+  const [isCreateMusic, setIsCreateMusic] = useState(false)
+  const [isEditProduct, setIsEditProduct] = useState(false);
+  const [newMusic, setNewMusic] = useState({
+    title: "",
+    type: "",
+    price: "",
+  })
+  const [editProduct, setEditProduct] = useState({
+    id: "",
+    name: "",
+    slug: "",
+    costPrice: "",
+    salePrice: "",
+    quantity: "",
+    taxPercent: "",
+  })
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [musicFile, setMusicFile] = useState(null);
+  const [musicPreview, setMusicPreview] = useState(null);
+  const [categoryId, setCategoryId] = useState(undefined);
+  const [filteredProducts, setFilteredProducts] = useState(musics);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [selectedFilterCategory, setSelectedFilterCategory] = useState(undefined);
+  const dispatch = useDispatch();
+
+  const handleCategoryFilter = (categoryId) => {
+    if (!categoryId) {
+      setFilteredProducts(products);
+      return;
+    }
+    if (categoryId === "all") {
+      setFilteredProducts(products);
+      return;
+    }
+    const filtered = products.filter(product => product?.category?.id === categoryId);
+    setFilteredProducts(filtered);
+  }
+
+  const clearFilters = () => {
+    setFilteredProducts(products);
+    setSearch("");
+    setSelectedFilterCategory("");
+  }
+
+  const handleCreateMusic = async () => {
+    // console.log(newMusic, categoryId, musicFile, file)
+    if (!file) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    if (!categoryId) {
+      toast.error("Please select a category");
+      return;
+    }
+
+    if (!newMusic.title || !newMusic.type) {
+      toast.error("Please fill all the fields");
+      return;
+    }
+
+    if (newMusic.type === 'FREE' && newMusic.price > 0) {
+      toast.error("Please select PAID type for adding price");
+      return;
+    }
+
+    if (newMusic.type === 'PAID' && (newMusic.price === 0 || newMusic.price === '' || newMusic.price === null)) {
+      toast.error("Price should be greater than 0");
+      return;
+    }
+
+    const thumbnailUrl = await dispatch(uploadImage({ setLoading, file, parentId: user?.id })).unwrap();
+    const uploadedMusic = await dispatch(uploadAudio({ setLoading, parentId: user?.id, file: musicFile })).unwrap();
+    // console.log(uploadedMusic, 'uploadedMusic')
+
+    const body = {
+      ...newMusic,
+      price: newMusic.price ? parseFloat(newMusic.price) : 0,
+      thumbnail: thumbnailUrl,
+      url: uploadedMusic?.url,
+      mimeType: uploadedMusic?.mimeType,
+      size: uploadedMusic?.size,
+      uploadedBy: user?.id
+    }
+
+    dispatch(createMusic({ setLoading, categoryId, formData: body }))
+    setIsCreateMusic(false)
+    setNewMusic({
+      title: "",
+      type: "",
+      price: ""
+    })
+  }
+
+  const handleEditProduct = async () => {
+    if (!categoryId) {
+      toast.error("Please select a category");
+      return;
+    }
+    console.log("editProduct", editProduct);
+    if (!editProduct.name || !editProduct.slug || !editProduct.salePrice || !editProduct.quantity) {
+      toast.error("Please fill all the fields");
+      return;
+    }
+
+    if (preview && file) {
+      const url = await dispatch(uploadImage({ setLoading, file, parentId: user?.id })).unwrap();
+      editProduct.image = url;
+    }
+
+    const formData = {
+      ...editProduct,
+      costPrice: editProduct.costPrice ? parseFloat(editProduct.costPrice) : 0,
+      salePrice: editProduct.salePrice ? parseFloat(editProduct.salePrice) : 0,
+      quantity: editProduct.quantity ? parseInt(editProduct.quantity) : 0,
+      taxPercent: editProduct.taxPercent ? parseFloat(editProduct.taxPercent) : 0,
+      categoryId,
+    }
+
+    dispatch(updateProduct({ setLoading, categoryId, formData, productId: editProduct.id }))
+    setIsEditProduct(false)
+    setEditProduct({
+      name: "",
+      slug: "",
+      costPrice: "",
+      salePrice: "",
+      quantity: "",
+      taxPercent: "",
+    })
+    setFile(null);
+    setPreview(null);
+  }
+
+  const gettingAllMusic = () => {
+    dispatch(getAllMusics({ setLoading, search }))
+  }
+
+  const gettingAllCategories = () => {
+    dispatch(getAllMusicCategories({ setLoading }))
+  }
+
+  useEffect(() => {
+    gettingAllMusic();
+    gettingAllCategories();
+  }, [])
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      gettingAllMusic();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [search]);
+
+  useEffect(() => {
+    setFilteredProducts(musics);
+  }, [musics])
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+    if (selectedFile) {
+      setPreview(URL.createObjectURL(selectedFile));
+    } else {
+      setPreview(null);
+    }
+  };
+
+  const handleMusicFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setMusicFile(selectedFile);
+    if (selectedFile) {
+      setMusicPreview(URL.createObjectURL(selectedFile));
+      console.log("Selected file:", selectedFile);
+      console.log("Preview URL:", selectedFile && URL.createObjectURL(selectedFile));
+    } else {
+      setMusicPreview(null);
+    }
+  };
+
+  const deleteProduct = (categoryId, productId) => {
+    if (!categoryId || !productId) {
+      toast.error("Category ID and Product ID are required to delete a product");
+      return;
+    }
+    dispatch(delProduct({ setLoading, categoryId, productId }))
+  }
+
+
+
+  return (
+    <div className="flex h-screen bg-background w-full">
+      {loading && <Loading />}
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <header className="bg-background border-b border-border px-6 py-4 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-foreground">Products</h1>
+
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+              <Input placeholder="Search..." className="pl-10 w-64" />
+            </div>
+            <Avatar className="w-10 h-10">
+              <AvatarImage src="/professional-headshot.png" />
+              <AvatarFallback>WG</AvatarFallback>
+            </Avatar>
+            <div className="text-right">
+              <div className="font-medium text-foreground">William Gray</div>
+              <div className="text-sm text-muted-foreground">Super Admin</div>
+            </div>
+          </div>
+        </header>
+
+        {/* Content */}
+        <main className="flex-1 p-6">
+          <div className="bg-card rounded-lg border border-border">
+            {/* Category List Header */}
+            <div className="p-6 border-b border-border">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-card-foreground">Products List</h2>
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => setIsCreateMusic(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Product
+                </Button>
+              </div>
+
+              {/* Filters */}
+              <div className="grid grid-cols-3 gap-4 items-center">
+                <div>
+                  <label className="block text-sm font-medium text-card-foreground mb-2">Product Name</label>
+                  <Input placeholder="Enter product name" value={search} onChange={(e) => setSearch(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-card-foreground mb-2">Category</label>
+                  <Select value={selectedFilterCategory} onValueChange={(value) => {
+                    handleCategoryFilter(value);
+                    setSelectedFilterCategory(value);
+                  }}>
+                    <SelectTrigger className={`w-[100%]`}>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      {categories?.map((cat, index) => (
+                        <SelectItem key={index} value={cat?.id}>{cat?.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* <div>
+                  <label className="block text-sm font-medium text-card-foreground mb-2">Status</label>
+                  <Select value={filters.status} onValueChange={(e) => handleChange("status", e)}>
+                    <SelectTrigger className={`w-[100%]`}>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div> */}
+                <div>
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground w-full mt-7" onClick={clearFilters}>
+                    Clear
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Table */}
+            {musics?.length !== 0 && !loading && (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">TRACK</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">TITLE</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">PRICE</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">CATEGORY</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">UPLOADED BY</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProducts?.map((music, index) => (
+                      <tr key={index} className="border-b border-border hover:bg-muted/50">
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
+                              <img src={music?.thumbnail} alt={music?.title} />
+                            </div>
+                            <audio
+                              controls
+                              src={music?.url}
+                              className="w-72 h-8"
+                            >
+                              Your browser does not support the audio element.
+                            </audio>
+                          </div>
+                        </td>
+                        <td className="p-4 text-card-foreground">{music?.title}</td>
+                        <td className="p-4 text-card-foreground">{music?.type !== 'FREE' ? music?.price : music?.type}</td>
+                        <td className="p-4 text-card-foreground">{music?.category?.name}</td>
+                        <td className="p-4 text-card-foreground">{music?.uploadedBy?.name}</td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-muted-foreground hover:text-card-foreground"
+                            // onClick={() => {
+                            //   setEditProduct({
+                            //     id: product?.id,
+                            //     name: product?.name,
+                            //     slug: product?.slug,
+                            //     costPrice: product?.costPrice,
+                            //     salePrice: product?.salePrice,
+                            //     quantity: product?.quantity,
+                            //     taxPercent: product?.taxPercent,
+                            //   });
+                            //   setIsEditProduct(true);
+                            //   setPreview(product?.image);
+                            //   setCategoryId(product?.category?.id);
+                            // }}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive"
+                            // onClick={() => deleteProduct(product?.category?.id, product?.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {filteredProducts?.length === 0 && !loading && (
+              <div className="p-6">
+                <p className="text-lg font-medium text-gray-500 text-center">
+                  No Products Found
+                </p>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+
+
+      <Dialog open={isEditProduct} onOpenChange={setIsEditProduct}>
+        <DialogContent className="sm:max-w-md rounded-xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-gray-800">Edit Product</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="mb-2">Product Image</Label>
+              <div className="flex items-center justify-between w-full border rounded-lg px-3 py-2">
+                <label
+                  htmlFor="file-upload"
+                  className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-sm px-4 py-2 rounded cursor-pointer"
+                >
+                  Choose File
+                </label>
+                <span className="text-gray-500 text-sm truncate">
+                  {file ? file.name : "No file chosen"}
+                </span>
+                <input
+                  id="file-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </div>
+              {preview && (
+                <div className="mt-2">
+                  <img
+                    src={preview}
+                    alt="Preview"
+                    className="w-20 h-20 object-cover rounded-lg border"
+                  />
+                </div>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="name" className="text-sm font-medium text-gray-700">
+                Name
+              </Label>
+              <Input
+                id="name"
+                placeholder="Name"
+                className="mt-1 rounded-full"
+                value={editProduct.name}
+                onChange={(e) => setEditProduct({ ...editProduct, name: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="slug" className="text-sm font-medium text-gray-700">
+                Slug
+              </Label>
+              <Input
+                id="slug"
+                placeholder="Slug"
+                className="mt-1 rounded-full"
+                value={editProduct.slug}
+                onChange={(e) => setEditProduct({ ...editProduct, slug: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="costPrice" className="text-sm font-medium text-gray-700">
+                Category
+              </Label>
+              <Select
+                value={categoryId}
+                onValueChange={(value) => setCategoryId(value)}
+                className="w-full"
+              >
+                <SelectTrigger className="mt-1 rounded-full w-full">
+                  <SelectValue placeholder="Select Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories?.map((cat, index) => (
+                    <SelectItem key={index} value={cat?.id}>{cat?.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="costPrice" className="text-sm font-medium text-gray-700">
+                Cost Price
+              </Label>
+              <Input
+                id="costPrice"
+                type="text"
+                placeholder="Cost Price"
+                value={editProduct.costPrice}
+                onChange={(e) => setEditProduct({ ...editProduct, costPrice: e.target.value })}
+                className="mt-1 rounded-full"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="salePrice" className="text-sm font-medium text-gray-700">
+                Sale Price
+              </Label>
+              <Input
+                id="salePrice"
+                type="text"
+                placeholder="Sale Price"
+                value={editProduct.salePrice}
+                onChange={(e) => setEditProduct({ ...editProduct, salePrice: e.target.value })}
+                className="mt-1 rounded-full"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="quantity" className="text-sm font-medium text-gray-700">
+                Quantity
+              </Label>
+              <Input
+                id="quantity"
+                type="text"
+                placeholder="Quantity"
+                value={editProduct.quantity}
+                onChange={(e) => setEditProduct({ ...editProduct, quantity: e.target.value })}
+                className="mt-1 rounded-full"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="taxPercent" className="text-sm font-medium text-gray-700">
+                Tax Percent
+              </Label>
+              <Input
+                id="taxPercent"
+                type="text"
+                placeholder="Tax Percent"
+                value={editProduct.taxPercent}
+                onChange={(e) => setEditProduct({ ...editProduct, taxPercent: e.target.value })}
+                className="mt-1 rounded-full"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                className="flex-1 rounded-full bg-transparent"
+                onClick={() => setIsEditProduct(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-secondary rounded-full"
+                onClick={handleEditProduct}
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Update Product
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isCreateMusic} onOpenChange={setIsCreateMusic}>
+        <DialogContent className="sm:max-w-md rounded-xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-gray-800">Upload New Music</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="mb-2">Music Thumbnail</Label>
+              <div className="flex items-center justify-between w-full border rounded-lg px-3 py-2">
+                <label
+                  htmlFor="file-upload"
+                  className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-sm px-4 py-2 rounded cursor-pointer"
+                >
+                  Choose File
+                </label>
+                <span className="text-gray-500 text-sm truncate">
+                  {file ? file.name : "No file chosen"}
+                </span>
+                <input
+                  id="file-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </div>
+              {preview && (
+                <div className="mt-2">
+                  <img
+                    src={preview}
+                    alt="Preview"
+                    className="w-20 h-20 object-cover rounded-lg border"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Label className="mb-2">Select Music</Label>
+              <div className="flex items-center justify-between w-full border rounded-lg px-3 py-2">
+                <label
+                  htmlFor="music-file-upload"
+                  className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-sm px-4 py-2 rounded cursor-pointer"
+                >
+                  Choose File
+                </label>
+                <span className="text-gray-500 text-sm truncate">
+                  {musicFile ? musicFile.name : "No file chosen"}
+                </span>
+                <input
+                  id="music-file-upload"
+                  type="file"
+                  accept="audio/*,audio/mpeg,audio/wav,audio/ogg,audio/x-m4a"
+                  onChange={handleMusicFileChange}
+                  className="hidden"
+                />
+              </div>
+              {musicPreview && (
+                <div className="mt-2">
+                  <audio
+                    controls
+                    src={musicPreview}
+                    className="w-full h-20 object-cover rounded-lg border"
+                  />
+                </div>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="title" className="text-sm font-medium text-gray-700">
+                Name
+              </Label>
+              <Input
+                id="title"
+                placeholder="Name"
+                className="mt-1 rounded-full"
+                value={newMusic.title}
+                onChange={(e) => setNewMusic({ ...newMusic, title: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="slug" className="text-sm font-medium text-gray-700">
+                Type
+              </Label>
+              <Select
+                value={newMusic.type}
+                onValueChange={(value) => setNewMusic({ ...newMusic, type: value })}
+                className="w-full"
+              >
+                <SelectTrigger className="mt-1 rounded-full w-full">
+                  <SelectValue placeholder="Select Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FREE">FREE</SelectItem>
+                  <SelectItem value="PAID">PAID</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="costPrice" className="text-sm font-medium text-gray-700">
+                Category
+              </Label>
+              <Select
+                value={categoryId}
+                onValueChange={(value) => setCategoryId(value)}
+                className="w-full"
+              >
+                <SelectTrigger className="mt-1 rounded-full w-full">
+                  <SelectValue placeholder="Select Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories?.map((cat, index) => (
+                    <SelectItem key={index} value={cat?.id}>{cat?.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="price" className="text-sm font-medium text-gray-700">
+                Price
+              </Label>
+              <Input
+                id="price"
+                type="text"
+                placeholder="Price"
+                value={newMusic.price}
+                onChange={(e) => setNewMusic({ ...newMusic, price: e.target.value })}
+                className="mt-1 rounded-full"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                className="flex-1 rounded-full bg-transparent"
+                onClick={() => setIsCreateMusic(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-secondary rounded-full"
+                onClick={handleCreateMusic}
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Create Product
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}

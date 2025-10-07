@@ -11,8 +11,8 @@ export default function Session() {
     const mainControls = useAnimation()
     const inView = useInView(ref, { once: false, amount: 0.4 })
 
-    const subText = "Session Times"
-    const headingText = "Your kids Are 100% Safe at Our Care."
+    const subText = "Childcare Sessions"
+    const headingText = "Fun & Learning Every Moment of the Day."
 
     // Variant for individual characters
     const charVariant = {
@@ -127,8 +127,8 @@ export default function Session() {
                         initial="hidden"
                         animate={mainControls}
                     >
-                        {headingText.split("").map((ch, i) => (
-                            <motion.span key={i} variants={charVariant} aria-hidden="true">
+                        {headingText.split(" ").map((ch, i) => (
+                            <motion.span key={i} variants={charVariant} aria-hidden="true" className="inline-block mr-1">
                                 {ch}
                             </motion.span>
                         ))}
@@ -156,7 +156,7 @@ export default function Session() {
                                         <h3 className="text-gray-800 text-xl font-bold mb-2">
                                             {s.title}
                                         </h3>
-                                        <p className="text-gray-600 text-sm group-hover:text-amber-700 transition-all duration-300">{s.time}</p>
+                                        <p className="text-gray-600 text-sm group-hover:text-amber-700 transition-all duration-300">{s.description}</p>
                                     </div>
                                     <div className="w-16 h-16 bg-[#70167E] rounded-full flex items-center justify-center group-hover:bg-amber-700 transition-all duration-300">
                                         <Icon className="w-7 h-7 text-white" />

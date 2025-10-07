@@ -14,6 +14,7 @@ model Admin {
   password        String
   categories      Category[]
   musicCategories MusicCategory[]
+  Music           Music[]
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
@@ -96,6 +97,8 @@ model CartItem {
 
 model Order {
   id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  parent          Parent        @relation(fields: [parentId], references: [id])
+  parentId        String        @db.ObjectId
   shippingAddress String
   totalPrice      Float
   orderStatus     OrderStatus   @default(PENDING)
@@ -143,10 +146,10 @@ model Parent {
   folders          Folder[] @relation("ParentFolders") 
   uploadedImages   Image[]  @relation("ParentImages")
   Folder           Folder[]
-  Music            Music[]
   activities       Activity[]
   favorites        Favorite[]
   carts            Cart[]
+  orders           Order[]
 
   @@map("parents")
 }
@@ -191,8 +194,8 @@ model Music {
   price     Float?
   thumbnail String?
 
-  uploadedById String   @db.ObjectId
-  uploadedBy   Parent   @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  uploadedById String?   @db.ObjectId
+  uploadedBy   Admin?   @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
 
   category      MusicCategory?    @relation(fields: [categoryId], references: [id])
   categoryId    String?      @db.ObjectId

@@ -104,7 +104,7 @@ export default function PreschoolHero() {
           initial="hidden"
           animate={subControls}
         >
-          {"Need Some Help?".split("").map((ch, i) => (
+          {"Welcome to Tiny Giggle".split("").map((ch, i) => (
             <motion.span key={i} variants={charVariant} aria-hidden="true">
               {ch}
             </motion.span>
@@ -118,8 +118,8 @@ export default function PreschoolHero() {
           initial="hidden"
           animate={mainControls}
         >
-          {"Our Preschool Classes".split("").map((ch, i) => (
-            <motion.span key={i} variants={charVariant} aria-hidden="true">
+          {"Celebrate Every Giggle, Every Smile".split(" ").map((ch, i) => (
+            <motion.span key={i} variants={charVariant} aria-hidden="true" className="inline-block mr-1">
               {ch}
             </motion.span>
           ))}
@@ -132,7 +132,7 @@ export default function PreschoolHero() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
           {/* Admission Button */}
           <button className=" bg-brand text-white font-bold py-4 px-8 rounded-full border-2 border-dashed border-orange-300 hover:scale-105 transition-transform duration-300 shadow-lg uppercase tracking-wider">
-            Admission
+            Join Now
           </button>
 
           {/* Call Support */}

@@ -7,9 +7,9 @@ import { useMotionValue, useSpring, useTransform, AnimatePresence, motion, useAn
 import { tabContent } from "@/components/data/home/learning";
 
 export default function Learning() {
-  const [activeTab, setActiveTab] = useState("Play & Learn")
+  const [activeTab, setActiveTab] = useState("Growth & Milestones")
 
-  const tabs = ["Play & Learn", "Creative Activites", "Nap & Care"]
+  const tabs = ["Growth & Milestones", "Memories", "Shopping & Music"]
 
   const ref = useRef(null)
   const subControls = useAnimation()

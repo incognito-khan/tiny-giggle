@@ -19,7 +19,7 @@ export const createMusic = createAsyncThunk(
             } else {
                 toast.error(data.message)
             }
-            return data;
+            return data?.data;
         } catch (err) {
             toast.error(err.response?.data || "Creating Music Failed")
             return rejectWithValue(err.response?.data || "Creating Music Failed");
@@ -67,6 +67,9 @@ const musicSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
+            .addCase(createMusic.fulfilled, (state, action) => {
+                state.musics.unshift(action.payload);
+            })
             .addCase(getAllMusics.fulfilled, (state, action) => {
                 state.musics = action.payload;
             })

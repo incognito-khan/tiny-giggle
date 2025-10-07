@@ -105,11 +105,17 @@ export default function EducationCards() {
                         initial="hidden"
                         animate={controls}
                     >
-                        {"Education For Kids".split("").map((ch, i) =>
-                            <motion.span key={i} variants={charVariant} aria-hidden="true">
+                        {/* {"Tiny Giggle Features".split("").map((ch, i) =>
+                            <motion.span key={i} variants={charVariant} aria-hidden="true" >
                                 {ch}
                             </motion.span>
-                        )}
+                        )} */}
+                        <motion.span
+                            variants={charVariant}
+                            aria-hidden="true"
+                        >
+                            Tiny Giggle Features
+                        </motion.span>
                     </motion.h2>
                 </div>
 
@@ -118,7 +124,7 @@ export default function EducationCards() {
                     modules={[Navigation, Autoplay, Pagination]}
                     onSlideChange={(swiper) => {
                         setActiveIndex(swiper.realIndex);
-                      }}
+                    }}
                     autoplay={{ delay: 4000, disableOnInteraction: false, pauseOnMouseEnter: true }}
                     loop
                     speed={1200}
