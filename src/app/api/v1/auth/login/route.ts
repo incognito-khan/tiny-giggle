@@ -63,6 +63,28 @@ export async function POST(
             id: true,
             musicId: true
           }
+        },
+        carts: {
+          select: {
+            items: {
+              select: {
+                id: true,
+                cartId: true,
+                productId: true,
+                quantity: true,
+                price: true,
+                product: {
+                  select: {
+                    id: true,
+                    name: true,
+                    image: true,
+                    salePrice: true,
+                    category: { select: { id: true, name: true } },
+                  },
+                },
+              },
+            },
+          },
         }
       },
     });
@@ -99,7 +121,8 @@ export async function POST(
             role: existingUser.type,
             childs: existingUser.childIds,
             folders: existingUser.folders,
-            favoriteMusic: existingUser.favorites
+            favoriteMusic: existingUser.favorites,
+            carts: existingUser.carts
           },
           tokens: {
             accessToken,

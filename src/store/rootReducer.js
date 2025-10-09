@@ -15,6 +15,7 @@ import favoriteReducer from './slices/favoriteSlice';
 import folderReducer from './slices/folderSlice';
 import growthReducer from './slices/growthSlice';
 import relationReducer from './slices/relationSlice';
+import cartReducer from './slices/cartSlice';
 
 // const authPersistConfig = {
 //   key: "auth",
@@ -24,7 +25,7 @@ import relationReducer from './slices/relationSlice';
 const rootPersistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth", "child", "favorite", "folder"],
+  whitelist: ["auth", "child", "favorite", "folder", "cart"],
 };
 
 const rootReducer = combineReducers({
@@ -42,6 +43,7 @@ const rootReducer = combineReducers({
   folder: folderReducer,
   growth: growthReducer,
   relation: relationReducer,
+  cart: cartReducer,
 });
 
 export default persistReducer(rootPersistConfig, rootReducer);;

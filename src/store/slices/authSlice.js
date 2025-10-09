@@ -4,6 +4,8 @@ import { toast } from "react-toastify";
 import { setChilds, clearChilds } from "./childSlice";
 import { setMusicFavorites } from "./favoriteSlice";
 import { setFolders } from "./folderSlice";
+import { setCart } from "./cartSlice";
+
 // -------------------- Adapter --------------------
 const usersAdapter = createEntityAdapter();
 
@@ -75,6 +77,7 @@ export const login = createAsyncThunk(
                 dispatch(setChilds(data?.data?.user?.childs));
                 dispatch(setMusicFavorites(data?.data?.user?.favoriteMusic))
                 dispatch(setFolders(data?.data?.user?.folders))
+                dispatch(setCart(data?.data?.user?.carts))
                 router.push('/');
             } else {
                 toast.error(data.message || "Login Failed");
@@ -106,6 +109,7 @@ export const googleLogin = createAsyncThunk(
                 dispatch(setChilds(resData?.data?.user?.childs));
                 dispatch(setMusicFavorites(resData?.data?.user?.favoriteMusic));
                 dispatch(setFolders(resData?.data?.user?.folders));
+                dispatch(setCart(resData?.data?.user?.carts))
                 router.push("/");
             } else {
                 toast.error(resData.message || "Login Failed");

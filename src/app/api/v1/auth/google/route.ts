@@ -55,6 +55,28 @@ export async function POST(req: NextRequest) {
                         id: true,
                         musicId: true
                     }
+                },
+                carts: {
+                    select: {
+                        items: {
+                            select: {
+                                id: true,
+                                cartId: true,
+                                productId: true,
+                                quantity: true,
+                                price: true,
+                                product: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        image: true,
+                                        salePrice: true,
+                                        category: { select: { id: true, name: true } },
+                                    },
+                                },
+                            },
+                        },
+                    },
                 }
             },
         });
@@ -76,7 +98,8 @@ export async function POST(req: NextRequest) {
                     role: existingParent.type,
                     childs: existingParent.childIds,
                     folders: existingParent.folders,
-                    favoriteMusic: existingParent.favorites
+                    favoriteMusic: existingParent.favorites,
+                    carts: existingParent.carts
                 },
                 tokens: { accessToken }
             }

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { POST, GET } from '@/lib/api';
+import { POST, GET, DELETE, PATCH } from '@/lib/api';
 import { toast } from "react-toastify";
 
 const initialState = {
@@ -31,14 +31,52 @@ export const createMusic = createAsyncThunk(
 
 export const getAllMusics = createAsyncThunk(
     "music/getAllMusics",
-    async ({ setLoading }) => {
+    async ({ setLoading, search }) => {
         try {
             setLoading(true);
-            const { data } = await GET(`categories/music`);
+            const { data } = await GET(`categories/music?search=${search || ""}`);
             return data.data;
         } catch (err) {
             toast.error(err.response?.data || "Fetching Musics Failed")
             return rejectWithValue(err.response?.data || "Fetching Musics Failed");
+        } finally {
+            setLoading(false);
+        }
+    }
+);
+
+export const updateMusic = createAsyncThunk(
+    "music/updateMusic",
+    async ({ setLoading, musicId, body }) => {
+        try {
+            setLoading(true);
+            const { data } = await PATCH(`categories/music/${musicId}`, body);
+            if (data.success) {
+                toast.success(data?.message)
+            }
+            return data.data;
+        } catch (err) {
+            toast.error(err.response?.data || "Updating Music Failed")
+            return rejectWithValue(err.response?.data || "Updating Music Failed");
+        } finally {
+            setLoading(false);
+        }
+    }
+);
+
+export const delMusic = createAsyncThunk(
+    "music/delMusic",
+    async ({ setLoading, musicId }) => {
+        try {
+            setLoading(true);
+            const { data } = await DELETE(`categories/music/${musicId}`);
+            if (data.success) {
+                toast.success(data?.message)
+            }
+            return data.data;
+        } catch (err) {
+            toast.error(err.response?.data || "Deleting Music Failed")
+            return rejectWithValue(err.response?.data || "Deleting Music Failed");
         } finally {
             setLoading(false);
         }
@@ -72,6 +110,16 @@ const musicSlice = createSlice({
             })
             .addCase(getAllMusics.fulfilled, (state, action) => {
                 state.musics = action.payload;
+            })
+            .addCase(updateMusic.fulfilled, (state, action) => {
+                if (action.payload?.id) {
+                    state.musics = state.musics.map(music => music.id === action.payload.id ? action.payload : music);
+                }
+            })
+            .addCase(delMusic.fulfilled, (state, action) => {
+                if (action.payload) {
+                    state.musics = state.musics.filter(music => music.id !== action.payload);
+                }
             })
             .addCase(getMusicById.fulfilled, (state, action) => {
                 state.music = action.payload;

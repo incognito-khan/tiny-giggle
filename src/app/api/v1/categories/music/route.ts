@@ -43,10 +43,20 @@ export async function POST(
 }
 
 export async function GET(
-  _req: NextRequest
+  req: NextRequest
 ): Promise<NextResponse<ApiResponse>> {
   try {
+    const url = new URL(req.url);
+    const search = url.searchParams.get("search")?.trim();
+
+    // Build where clause
+    const whereClause: any = {};
+    if (search) {
+      whereClause.title = { contains: search, mode: "insensitive" };
+    }
+    
     const musics = await prisma.music.findMany({
+      where: whereClause,
       orderBy: { createdAt: "desc" },
       select: {
         id: true,

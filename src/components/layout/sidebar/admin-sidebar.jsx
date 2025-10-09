@@ -1,7 +1,9 @@
 "use client"
 import { Search, Plus, Edit, Trash2, Home, Package, ShoppingCart, Archive, Users, Settings, LogOut, Music } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
+import { useDispatch } from "react-redux"
+import { logout } from "@/store/slices/authSlice"
 
 const sidebarItems = [
   { icon: Home, label: "Dashboard", active: false, href: "" },
@@ -15,12 +17,18 @@ const sidebarItems = [
 ]
 
 export function AdminSidebar() {
+  const dispatch = useDispatch();
+  const router = useRouter();
 
   const pathname = usePathname()
 
   const isActive = (href) => {
     return pathname === href;
   }
+
+  const handleLogout = () => {
+      dispatch(logout({ router }));
+    };
   return (
     <div className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col min-h-screen">
       {/* Logo */}
@@ -64,7 +72,7 @@ export function AdminSidebar() {
           <Settings className="w-5 h-5" />
           <span className="font-medium">Settings</span>
         </button>
-        <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sidebar-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground transition-colors">
+        <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sidebar-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground transition-colors" onClick={handleLogout}>
           <LogOut className="w-5 h-5" />
           <span className="font-medium">Log out</span>
         </button>

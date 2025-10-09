@@ -66,7 +66,7 @@ import { Button } from "@/components/ui/button";
 //   },
 // ]
 
-export default function ProductGrid({ products }) {
+export default function ProductGrid({ products, handelAddToCart }) {
   console.log(products, 'products from ProductGrid')
   const truncateText = (text, maxLength = 80) => {
     if (text.length <= maxLength) return text;
@@ -103,6 +103,7 @@ export default function ProductGrid({ products }) {
                   <Button
                     size="sm"
                     className="rounded-xl bg-pink-500 text-white hover:bg-pink-600 cursor-pointer shadow-sm"
+                    onClick={() => handelAddToCart(product?.id)}
                   >
                     Add to Cart
                   </Button>

@@ -11,9 +11,11 @@ import { Button } from "@/components/ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllProducts } from "@/store/slices/productSlice";
 import { getAllCategories } from "@/store/slices/categorySlice";
+import { addToCart } from '@/store/slices/cartSlice';
 import Loading from "@/components/loading";
 
 export default function BabyShoppingPage() {
+  const user = useSelector((state) => state.auth.user)
   const products = useSelector((state) => state.product.products);
   console.log(products);
   const categories = useSelector((state) => state.category.categories);
@@ -46,6 +48,10 @@ export default function BabyShoppingPage() {
       setFilteredProducts(filterd);
     }
   }, [activeCategory, products]);
+
+  const handelAddToCart = (productId) => {
+    dispatch(addToCart({ productId, parentId: user?.id, quantity: 1 }))
+  }
 
   return (
     <div className="min-h-screen w-screen bg-background">
@@ -116,7 +122,7 @@ export default function BabyShoppingPage() {
       />
 
       {/* Product Grid */}
-      <ProductGrid products={filteredProducts} />
+      <ProductGrid products={filteredProducts} handelAddToCart={handelAddToCart} />
     </div>
   );
 }
