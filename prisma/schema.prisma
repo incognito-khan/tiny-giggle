@@ -15,6 +15,7 @@ model Admin {
   categories      Category[]
   musicCategories MusicCategory[]
   Music           Music[]
+  milestone       Milestone[]
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
@@ -136,12 +137,12 @@ model Parent {
   issues     Issue[]
   comments   Comment[]
 
-  children         Child[]           @relation(fields: [childIds], references: [id])
-  childIds         String[]          @db.ObjectId
-  messages         Message[]
-  chats            Chat[]
-  chatParticipants ChatParticipant[]
-  milestones       Milestone[]
+  children           Child[]           @relation(fields: [childIds], references: [id])
+  childIds           String[]          @db.ObjectId
+  messages           Message[]
+  chats              Chat[]
+  chatParticipants   ChatParticipant[]
+  milestoneProgress  ChildMilestoneProgress[]
 
   folders          Folder[] @relation("ParentFolders") 
   uploadedImages   Image[]  @relation("ParentImages")
@@ -327,11 +328,11 @@ model Child {
   height   Float
   weight   Float
 
-  relations       ChildRelation[]
-  growthSummaries GrowthSummary[]
-  vaccinations    Vaccination[]
-  milestones      Milestone[]
-  activities      Activity[]
+  relations                 ChildRelation[]
+  growthSummaries           GrowthSummary[]
+  vaccinationProgress       VaccinationProgress[]
+  milestoneProgress         ChildMilestoneProgress[]
+  activities                Activity[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -357,16 +358,39 @@ model GrowthSummary {
 }
 
 model Vaccination {
-  id      String   @id @default(auto()) @map("_id") @db.ObjectId
-  title   String
-  dueDate DateTime
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  name               String
+  administrationSite AdministrationSite
+  month              VaccinationMonth
+  country            Country
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  child     Child    @relation(fields: [childId], references: [id])
-  childId   String   @db.ObjectId
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  progresses         VaccinationProgress[]
 
   @@map("vaccinations")
+}
+
+model VaccinationProgress {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  status       VaccinationStatus @default(PENDING)
+  date         DateTime?
+  time         String?
+  note         String?
+  image        String?
+
+  vaccination  Vaccination @relation(fields: [vaccinationId], references: [id])
+  vaccinationId String    @db.ObjectId
+
+  child        Child      @relation(fields: [childId], references: [id])
+  childId      String     @db.ObjectId
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([vaccinationId, childId])
+  @@map("vaccination_progresses")
 }
 
 model ChildRelation {
@@ -416,22 +440,89 @@ model Message {
 
 model Milestone {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  title       String // e.g., "First Word", "Started Walking"
-  description String? // optional details about the milestone
-  date        DateTime // when the milestone happened
+  title       String   // e.g., "Movement"
+  description String?  // optional details
+  month       Int?      // Month number (1, 2, 3 ...)
   imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relation
+  subMilestones SubMilestone[]
+  admin   Admin  @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  adminId String @db.ObjectId
+
+  @@map("milestones")
+}
+
+model SubMilestone {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String   // e.g., "Move Arm"
+  description String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relation to milestone
+  milestone   Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  milestoneId String    @db.ObjectId
+
+  // Relation to progress (child-parent marking)
+  progressRecords ChildMilestoneProgress[]
+
+  @@map("sub_milestones")
+}
+
+model ChildMilestoneProgress {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  achieved      Boolean  @default(false)
+  achievedAt    DateTime?
+  note          String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  child   Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
-  childId String @db.ObjectId
+  child        Child       @relation(fields: [childId], references: [id], onDelete: Cascade)
+  childId      String      @db.ObjectId
 
-  parent   Parent @relation(fields: [parentId], references: [id], onDelete: Cascade)
-  parentId String @db.ObjectId
+  parent       Parent      @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  parentId     String      @db.ObjectId
 
-  @@map("milestones")
+  subMilestone SubMilestone @relation(fields: [subMilestoneId], references: [id], onDelete: Cascade)
+  subMilestoneId String     @db.ObjectId
+
+  @@unique([childId, subMilestoneId]) // prevent duplicates
+  @@map("child_milestone_progress")
+}
+
+enum AdministrationSite {
+  BY_MOUTH
+  RIGHT_UPPER_ARM
+  THIGH
+}
+
+enum VaccinationStatus {
+  PENDING
+  TAKEN
+  SKIPPED
+}
+
+
+enum VaccinationMonth {
+  AT_BIRTH
+  MONTH_2
+  MONTH_4
+  MONTH_6
+  MONTH_12
+  MONTH_18
+  YEAR_5
+}
+
+enum Country {
+  PAKISTAN
+  USA
+  UAE
 }
 
 enum ParentType {

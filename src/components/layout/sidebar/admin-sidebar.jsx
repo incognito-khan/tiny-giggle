@@ -1,5 +1,5 @@
 "use client"
-import { Search, Plus, Edit, Trash2, Home, Package, ShoppingCart, Archive, Users, Settings, LogOut, Music } from "lucide-react"
+import { Search, Plus, Edit, Trash2, Home, Package, ShoppingCart, Archive, Users, Settings, LogOut, Music, Milestone, BriefcaseMedical } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useDispatch } from "react-redux"
@@ -11,6 +11,8 @@ const sidebarItems = [
   { icon: Music, label: "Music Category", active: false, href: "/admin-dashboard/music-categories" },
   { icon: Archive, label: "Products", active: false, href: "/admin-dashboard/products" },
   { icon: Music, label: "Music", active: false, href: "/admin-dashboard/music" },
+  { icon: Milestone, label: "Milestones", active: false, href: "/admin-dashboard/milestones" },
+  { icon: BriefcaseMedical, label: "Vaccinations", active: false, href: "/admin-dashboard/vaccinations" },
   { icon: ShoppingCart, label: "Shopping", active: false, href: "" },
   { icon: Archive, label: "Stock", active: false, href: "" },
   { icon: Users, label: "Supplier", active: false, href: "" },

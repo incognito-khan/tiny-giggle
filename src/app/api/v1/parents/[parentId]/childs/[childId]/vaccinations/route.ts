@@ -5,58 +5,52 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ parentId: string; childId: string }> }
+  { params }: { params: Promise<{ childId: string; parentId: string; }> }
 ): Promise<NextResponse<ApiResponse>> {
   try {
-    const { parentId, childId } = await params;
-    if (!parentId || !childId) {
-      return Res.badRequest({ message: "Parent & Child ID is required" });
+    const { childId, parentId } = await params;
+
+    if (!parentId) {
+      return Res.badRequest({ message: "Parent ID is required!" })
     }
+
+    if (!childId) {
+      return Res.badRequest({ message: "Child ID is required!" })
+    }
+
+    // Fetch all vaccinations
     const vaccinations = await prisma.vaccination.findMany({
-      where: {
-        childId,
-      },
+      orderBy: { month: "asc" },
       select: {
         id: true,
-        title: true,
-        dueDate: true,
-      },
-    });
-    return Res.success({
-      message: "Vaccinations",
-      data: vaccinations,
-    });
-  } catch (error) {
-    return Res.serverError();
-  }
-}
+        name: true,
+        administrationSite: true,
+        month: true,
+        country: true,
+        createdAt: true
+      }
+    })
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ parentId: string; childId: string }> }
-): Promise<NextResponse<ApiResponse>> {
-  const { title, dueDate } = await req.json();
-  const { childId, parentId } = await params;
-  try {
-    if (!title || !dueDate) {
-      return Res.badRequest({ message: "All fields are required" });
-    }
-    const existingChild = await prisma.child.findUnique({
-      where: { id: childId },
-      select: { id: true },
-    });
-    if (!existingChild) {
-      return Res.unauthorized({ message: "No child found" });
-    }
-    await prisma.vaccination.create({
-      data: {
-        title,
-        dueDate: new Date(dueDate),
-        childId,
-      },
-    });
-    return Res.created({ message: "Vaccination record has been saved" });
+    // Fetch child's progress (only vaccinationId + status)
+    const progresses = await prisma.vaccinationProgress.findMany({
+      where: { childId },
+      select: { vaccinationId: true, status: true },
+    })
+
+    // Convert to a lookup map for O(1) access
+    const progressMap = new Map(
+      progresses.map((p) => [p.vaccinationId, p.status])
+    )
+
+    // Merge progress status into vaccination list
+    const result = vaccinations.map((v) => ({
+      ...v,
+      status: progressMap.get(v.id) || "PENDING",
+    }))
+
+    return Res.ok({ data: result, message: "Vaccinations fetched successfully" })
   } catch (error) {
-    return Res.serverError();
+    console.error(error)
+    return Res.serverError({ message: "Failed to fetch child vaccinations" })
   }
 }
