@@ -44,6 +44,7 @@ export async function GET(
 
     return Res.ok({ message: "Orders fetched successfully", data: orders });
   } catch (error) {
-    return Res.serverError();
+    console.error(error)
+    return Res.serverError({ message: "Internal Server Error" });
   }
 }

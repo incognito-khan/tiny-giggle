@@ -23,6 +23,13 @@ export async function GET(req: NextRequest) {
             slug: true,
           },
         },
+        subCategory: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
+        }
       },
       orderBy: {
         createdAt: "desc",

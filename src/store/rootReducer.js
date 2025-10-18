@@ -16,6 +16,10 @@ import folderReducer from './slices/folderSlice';
 import growthReducer from './slices/growthSlice';
 import relationReducer from './slices/relationSlice';
 import cartReducer from './slices/cartSlice';
+import supplierReducer from './slices/supplierSlice';
+import orderReducer from './slices/orderSlice';
+import queryReducer from './slices/querySlice';
+import artistReducer from './slices/artistSlice';
 
 // const authPersistConfig = {
 //   key: "auth",
@@ -44,6 +48,10 @@ const rootReducer = combineReducers({
   growth: growthReducer,
   relation: relationReducer,
   cart: cartReducer,
+  supplier: supplierReducer,
+  order: orderReducer,
+  query: queryReducer,
+  artist: artistReducer,
 });
 
 export default persistReducer(rootPersistConfig, rootReducer);;

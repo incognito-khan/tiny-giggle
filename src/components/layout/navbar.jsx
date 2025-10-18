@@ -34,7 +34,7 @@ export default function Navbar() {
     if (item === "CONTACT") router.push("/contact");
     if (item === "LOGIN") router.push("/auth?tab=login");
     if (item === "SIGNUP") router.push("/auth?tab=signup");
-    if (item === "DASHBOARD") router.push(user?.role === 'admin' ? "/admin-dashboard" : "/parent-dashboard/children");
+    if (item === "DASHBOARD") router.push(user?.role === 'parent' ? "/parent-dashboard/children" : "/admin-dashboard");
     if (item === "LOGOUT") handleLogout();
   };
 

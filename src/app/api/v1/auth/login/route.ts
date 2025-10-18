@@ -34,6 +34,96 @@ export async function POST(
     //   return Res.badRequest({ message: "Captcha verification failed" });
     // }
 
+    const existingSupplier = await prisma.supplier.findUnique({
+      where: { email }
+    })
+
+    if (existingSupplier) {
+      const isMatch = await compareHashing(password, existingSupplier.password);
+      if (!isMatch) {
+        return Res.notFound({ message: "Invalid email or password" });
+      }
+
+
+      if (existingSupplier.status !== "ACTIVE") {
+        return Res.badRequest({
+          message: "Please contact to admin for activating your account.",
+        });
+      }
+
+      const accessToken = await createAccessToken(existingSupplier);
+      await sendEmail(existingSupplier.email, "new-login-detected", {
+        name: existingSupplier.name,
+        browser,
+        location,
+        os,
+        time,
+      });
+
+      return Res.ok({
+        message: "Successfully logged in",
+        data: {
+          user: {
+            id: existingSupplier.id,
+            name: existingSupplier.name,
+            email: existingSupplier.email,
+            categoryId: existingSupplier.categoryId,
+            subCategoryId: existingSupplier.subCategoryId,
+            role: 'supplier'
+          },
+          tokens: {
+            accessToken,
+          },
+        },
+      });
+
+    }
+
+    const existingArtist = await prisma.artist.findUnique({
+      where: { email }
+    })
+
+    if (existingArtist) {
+      const isMatch = await compareHashing(password, existingArtist.password);
+      if (!isMatch) {
+        return Res.notFound({ message: "Invalid email or password" });
+      }
+
+
+      if (existingArtist.status !== "ACTIVE") {
+        return Res.badRequest({
+          message: "Please contact to admin for activating your account.",
+        });
+      }
+
+      const accessToken = await createAccessToken(existingArtist);
+      await sendEmail(existingArtist.email, "new-login-detected", {
+        name: existingArtist.name,
+        browser,
+        location,
+        os,
+        time,
+      });
+
+      return Res.ok({
+        message: "Successfully logged in",
+        data: {
+          user: {
+            id: existingArtist.id,
+            name: existingArtist.name,
+            email: existingArtist.email,
+            categoryId: existingArtist.categoryId,
+            subCategoryId: existingArtist.subCategoryId,
+            role: 'artist'
+          },
+          tokens: {
+            accessToken,
+          },
+        },
+      });
+
+    }
+
     const existingUser = await prisma.parent.findUnique({
       where: {
         email,
@@ -118,11 +208,11 @@ export async function POST(
             id: existingUser.id,
             name: existingUser.name,
             email: existingUser.email,
-            role: existingUser.type,
             childs: existingUser.childIds,
             folders: existingUser.folders,
             favoriteMusic: existingUser.favorites,
-            carts: existingUser.carts
+            carts: existingUser.carts,
+            role: "parent"
           },
           tokens: {
             accessToken,
@@ -132,15 +222,11 @@ export async function POST(
 
     }
 
-    console.log("Code runs till existing user...")
-
     const existingAdmin = await prisma.admin.findUnique({
       where: {
         email
       }
     });
-
-    console.log("Code runs till existing admin found...", existingAdmin)
 
     if (existingAdmin) {
       const accessToken = await createAccessToken(existingAdmin);
@@ -170,7 +256,7 @@ export async function POST(
     }
 
 
-    if (!existingUser && !existingAdmin) {
+    if (!existingUser && !existingAdmin && !existingArtist && !existingSupplier) {
       return Res.notFound({ message: "Invalid email or password" });
     }
 
@@ -181,6 +267,7 @@ export async function POST(
 
 
   } catch (error) {
+    console.error(error)
     const message =
       error instanceof Error ? error.message : "Internal server error";
     return Res.serverError({ message });

@@ -4,6 +4,7 @@ import EmailVerifiedSuccess from "./EmailVerifiedSuccess";
 import PasswordResetSuccessEmail from "./PasswordResetSuccess";
 import NewLoginDetectedEmail from "./new-login-detected";
 import ParentInviteEmail from "./ParentInviteEmail";
+import NewAccountEmail from "./NewAccountEmail";
 
 export interface EmailTemplateProps {
   "signup-otp": {
@@ -29,6 +30,12 @@ export interface EmailTemplateProps {
     inviterName: string;
     inviteLink: string;
   };
+  "new-vendor-account": {
+    name: string;
+    email: string;
+    password: string;
+    role: "Artist" | "Supplier"
+  }
 }
 
 export const emailTemplates = {
@@ -56,6 +63,10 @@ export const emailTemplates = {
     subject: "You have been Invited",
     component: ParentInviteEmail,
   },
+  "new-vendor-account": {
+    subject: "Your account has been created",
+    component: NewAccountEmail,
+  }
 } as const;
 
 export type EmailCategory = keyof typeof emailTemplates;

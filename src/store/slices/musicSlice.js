@@ -10,10 +10,10 @@ const initialState = {
 
 export const createMusic = createAsyncThunk(
     "music/createMusic",
-    async ({ formData, setLoading, categoryId }) => {
+    async ({ formData, setLoading, categoryId, subCategoryId }) => {
         try {
             setLoading(true);
-            const { data } = await POST(`categories/${categoryId}/music`, formData);
+            const { data } = await POST(`categories/${categoryId}/music/${subCategoryId}`, formData);
             if (data.success) {
                 toast.success(data?.message)
             } else {
@@ -35,6 +35,22 @@ export const getAllMusics = createAsyncThunk(
         try {
             setLoading(true);
             const { data } = await GET(`categories/music?search=${search || ""}`);
+            return data.data;
+        } catch (err) {
+            toast.error(err.response?.data || "Fetching Musics Failed")
+            return rejectWithValue(err.response?.data || "Fetching Musics Failed");
+        } finally {
+            setLoading(false);
+        }
+    }
+);
+
+export const getAllArtistMusics = createAsyncThunk(
+    "music/getAllArtistMusics",
+    async ({ setLoading, search, adminId }) => {
+        try {
+            setLoading(true);
+            const { data } = await GET(`admin/${adminId}/artists/music?search=${search || ""}`);
             return data.data;
         } catch (err) {
             toast.error(err.response?.data || "Fetching Musics Failed")
@@ -109,6 +125,9 @@ const musicSlice = createSlice({
                 state.musics.unshift(action.payload);
             })
             .addCase(getAllMusics.fulfilled, (state, action) => {
+                state.musics = action.payload;
+            })
+            .addCase(getAllArtistMusics.fulfilled, (state, action) => {
                 state.musics = action.payload;
             })
             .addCase(updateMusic.fulfilled, (state, action) => {

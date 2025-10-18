@@ -13,9 +13,22 @@ export async function GET(
         name: true,
         slug: true,
         createdAt: true,
+        status: true,
         _count: {
           select: { musics: true },
         },
+        subCategories: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            status: true,
+            createdAt: true,
+            _count: {
+              select: { music: true },
+            },
+          }
+        }
       },
       orderBy: { createdAt: "desc" },
     });

@@ -8,10 +8,10 @@ export async function POST(
 ): Promise<NextResponse<ApiResponse>> {
   try {
     const body = await req.json();
-    const { name, slug, adminId } = body;
+    const { name, slug, adminId, status } = body;
 
-    if (!name || !slug || !adminId) {
-      return Res.badRequest({ message: "Name, slug and adminId are required" });
+    if (!name || !slug || !adminId || !status) {
+      return Res.badRequest({ message: "Name, status, slug and adminId are required" });
     }
 
     const category = await prisma.musicCategory.create({
@@ -19,6 +19,7 @@ export async function POST(
         name,
         slug,
         adminId,
+        status: status || "ACTIVE"
       },
       include: {
         _count: {
@@ -75,6 +76,12 @@ export async function GET(
           }
         },
         category: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
+        subCategory: {
           select: {
             id: true,
             name: true

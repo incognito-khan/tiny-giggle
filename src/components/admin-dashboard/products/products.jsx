@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { Search, Plus, Edit, Trash2, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { getAllProducts, createProduct, delProduct, updateProduct } from "@/store/slices/productSlice"
+import { getAllProducts, createProduct, delProduct, updateProduct, getAllParentProducts } from "@/store/slices/productSlice"
 import { getAllCategories } from "@/store/slices/categorySlice"
 import { uploadImage } from "@/store/slices/mediaSlice"
 import { useDispatch, useSelector } from "react-redux"
@@ -43,11 +43,14 @@ export function Products() {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [categoryId, setCategoryId] = useState(undefined);
+  const [subCategoryId, setSubCategoryId] = useState("");
   const [filteredProducts, setFilteredProducts] = useState(products);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedFilterCategory, setSelectedFilterCategory] = useState(undefined);
   const dispatch = useDispatch();
+
+  const selectedCategory = categories?.find(cat => cat.id === categoryId);
 
   const handleCategoryFilter = (categoryId) => {
     if (!categoryId) {
@@ -79,6 +82,11 @@ export function Products() {
       return;
     }
 
+    if (!subCategoryId) {
+      toast.error("Please select a sub category");
+      return;
+    }
+
     if (!newProduct.name || !newProduct.slug || !newProduct.costPrice || !newProduct.salePrice || !newProduct.quantity || !newProduct.taxPercent) {
       toast.error("Please fill all the fields");
       return;
@@ -93,9 +101,10 @@ export function Products() {
       quantity: newProduct.quantity ? parseInt(newProduct.quantity) : 0,
       taxPercent: newProduct.taxPercent ? parseFloat(newProduct.taxPercent) : 0,
       image: url,
+      listedBy: user?.id
     }
 
-    dispatch(createProduct({ setLoading, categoryId, body }))
+    dispatch(createProduct({ setLoading, categoryId, body, subCategoryId }))
     setIsCreateProduct(false)
     setNewProduct({
       name: "",
@@ -111,6 +120,11 @@ export function Products() {
       toast.error("Please select a category");
       return;
     }
+    if (!subCategoryId) {
+      toast.error("Please select a category");
+      return;
+    }
+
     console.log("editProduct", editProduct);
     if (!editProduct.name || !editProduct.slug || !editProduct.salePrice || !editProduct.quantity) {
       toast.error("Please fill all the fields");
@@ -129,6 +143,7 @@ export function Products() {
       quantity: editProduct.quantity ? parseInt(editProduct.quantity) : 0,
       taxPercent: editProduct.taxPercent ? parseFloat(editProduct.taxPercent) : 0,
       categoryId,
+      subCategoryId
     }
 
     dispatch(updateProduct({ setLoading, categoryId, formData, productId: editProduct.id }))
@@ -146,7 +161,11 @@ export function Products() {
   }
 
   const gettingAllProducts = () => {
-    dispatch(getAllProducts({ setLoading, search }))
+    if (user?.role === 'supplier') {
+      dispatch(getAllParentProducts({ setLoading, search, parentId: user?.id }))
+    } else {
+      dispatch(getAllProducts({ setLoading, search }))
+    }
   }
 
   const gettingAllCategories = () => {
@@ -222,10 +241,12 @@ export function Products() {
             <div className="p-6 border-b border-border">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-card-foreground">Products List</h2>
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => setIsCreateProduct(true)}>
+                {user?.role === 'supplier' && (
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => setIsCreateProduct(true)}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add Product
                 </Button>
+                )}
               </div>
 
               {/* Filters */}
@@ -280,6 +301,7 @@ export function Products() {
                       <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">NAME</th>
                       <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">CODE</th>
                       <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">CATEGORY</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">SUB CATEGORY</th>
                       <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">QUANTITY</th>
                       <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">PRICE</th>
                       <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">ACTION</th>
@@ -299,6 +321,7 @@ export function Products() {
                         </td>
                         <td className="p-4 text-card-foreground">{product?.slug}</td>
                         <td className="p-4 text-card-foreground">{product?.category?.name}</td>
+                        <td className="p-4 text-card-foreground">{product?.subCategory?.name}</td>
                         <td className="p-4 text-card-foreground">{product?.quantity}</td>
                         <td className="p-4 text-card-foreground">{product?.salePrice}</td>
                         <td className="p-4">
@@ -320,6 +343,7 @@ export function Products() {
                                 setIsEditProduct(true);
                                 setPreview(product?.image);
                                 setCategoryId(product?.category?.id);
+                                setSubCategoryId(product?.subCategory?.id)
                               }}
                             >
                               <Edit className="w-4 h-4" />
@@ -339,7 +363,7 @@ export function Products() {
             )}
             {filteredProducts?.length === 0 && !loading && (
               <div className="p-6">
-                <p className="text-lg font-medium text-gray-500 text-center text-card-foreground">
+                <p className="text-lg font-medium text-gray-500 text-center">
                   No Products Found
                 </p>
               </div>
@@ -427,6 +451,42 @@ export function Products() {
                   {categories?.map((cat, index) => (
                     <SelectItem key={index} value={cat?.id}>{cat?.name}</SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="subCategory" className="text-sm font-medium text-gray-700">
+                Sub Category
+              </Label>
+              <Select
+                value={subCategoryId}
+                onValueChange={(value) => setSubCategoryId(value)}
+                disabled={!categoryId || !selectedCategory?.subCategories?.length}
+                className="w-full"
+              >
+                <SelectTrigger className="mt-1 rounded-full w-full">
+                  <SelectValue
+                    placeholder={
+                      !categoryId
+                        ? "Select Category first"
+                        : selectedCategory?.subCategories?.length
+                          ? "Select Sub Category"
+                          : "No Sub Categories Found"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {selectedCategory?.subCategories?.length > 0 ? (
+                    selectedCategory.subCategories.map((sub) => (
+                      <SelectItem key={sub.id} value={sub.id}>
+                        {sub.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                      No subcategories available
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -574,7 +634,10 @@ export function Products() {
               </Label>
               <Select
                 value={categoryId}
-                onValueChange={(value) => setCategoryId(value)}
+                onValueChange={(value) => {
+                  setCategoryId(value);
+                  setSubCategoryId("")
+                }}
                 className="w-full"
               >
                 <SelectTrigger className="mt-1 rounded-full w-full">
@@ -584,6 +647,43 @@ export function Products() {
                   {categories?.map((cat, index) => (
                     <SelectItem key={index} value={cat?.id}>{cat?.name}</SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="subCategory" className="text-sm font-medium text-gray-700">
+                Sub Category
+              </Label>
+              <Select
+                value={subCategoryId}
+                onValueChange={(value) => setSubCategoryId(value)}
+                disabled={!categoryId || !selectedCategory?.subCategories?.length}
+                className="w-full"
+              >
+                <SelectTrigger className="mt-1 rounded-full w-full">
+                  <SelectValue
+                    placeholder={
+                      !categoryId
+                        ? "Select Category first"
+                        : selectedCategory?.subCategories?.length
+                          ? "Select Sub Category"
+                          : "No Sub Categories Found"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {selectedCategory?.subCategories?.length > 0 ? (
+                    selectedCategory.subCategories.map((sub) => (
+                      <SelectItem key={sub.id} value={sub.id}>
+                        {sub.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                      No subcategories available
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
             </div>

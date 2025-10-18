@@ -23,6 +23,12 @@ export async function GET(
         costPrice: true,
         salePrice: true,
         taxPercent: true,
+        listedBy: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
       },
     });
     return Res.success({
@@ -101,16 +107,24 @@ export async function DELETE(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ productId: string }> }
+  { params }: { params: Promise<{ productId: string; categoryId: string }> }
 ): Promise<NextResponse<ApiResponse>> {
   try {
-    const { productId } = await params;
+    const { productId, categoryId } = await params;
 
     if (!productId) {
       return Res.badRequest({ message: "Product ID is required" });
     }
 
-    const { name, slug, image, quantity, costPrice, salePrice, taxPercent } = await req.json();
+    if (!categoryId) {
+      return Res.badRequest({ message: "Category ID is required" });
+    }
+
+    const { name, slug, image, quantity, costPrice, salePrice, taxPercent, subCategoryId } = await req.json();
+
+    if (!subCategoryId) {
+      return Res.badRequest({ message: "Sub Category ID is required" });
+    }
 
     if (!name || !slug || !quantity || !salePrice) {
       return Res.badRequest({ message: "All fields are required" });
@@ -126,13 +140,26 @@ export async function PATCH(
 
     const updatedProduct = await prisma.product.update({
       where: { id: productId },
-      data: { name, slug, image, quantity, costPrice, salePrice, taxPercent },
+      data: { name, slug, image, quantity, costPrice, salePrice, taxPercent, subCategoryId, categoryId },
       include: {
         category: {
           select: {
             id: true,
             name: true,
             slug: true,
+          }
+        },
+        subCategory: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
+        },
+        listedBy: {
+          select: {
+            id: true,
+            name: true
           }
         }
       },
@@ -150,6 +177,8 @@ export async function PATCH(
         quantity: updatedProduct.quantity,
         taxPercent: updatedProduct.taxPercent,
         category: updatedProduct.category,
+        subCategory: updatedProduct.subCategory,
+        listedBy: updatedProduct.listedBy
       },
     });
 

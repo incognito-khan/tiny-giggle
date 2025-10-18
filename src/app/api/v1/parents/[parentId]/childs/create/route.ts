@@ -49,20 +49,20 @@ export async function POST(
     });
 
     // Calculate vaccination due dates and prepare data for creation
-    const vaccinationsToCreate = staticVaccinations.map((vac) => {
-      const dueDate = new Date(child.birthday);
-      dueDate.setDate(dueDate.getDate() + vac.daysAfterBirth);
-      return {
-        childId: child.id,
-        title: vac.title,
-        dueDate: dueDate,
-      };
-    });
+    // const vaccinationsToCreate = staticVaccinations.map((vac) => {
+    //   const dueDate = new Date(child.birthday);
+    //   dueDate.setDate(dueDate.getDate() + vac.daysAfterBirth);
+    //   return {
+    //     childId: child.id,
+    //     title: vac.title,
+    //     dueDate: dueDate,
+    //   };
+    // });
 
     // Use `createMany` to insert all vaccinations at once
-    await prisma.vaccination.createMany({
-      data: vaccinationsToCreate,
-    });
+    // await prisma.vaccination.createMany({
+    //   data: vaccinationsToCreate,
+    // });
 
     return Res.created({ message: "Child has been created", data: child });
   } catch (error) {

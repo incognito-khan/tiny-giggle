@@ -3,6 +3,7 @@ import { OrderStatus, PaymentStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { Res } from "@/lib/general-response";
 import { prisma } from "@/lib/prisma";
+
 type Data = {
   shippingAddress: string;
   totalPrice: number;
@@ -39,8 +40,14 @@ export async function POST(
     ) {
       return Res.badRequest({ message: "All fields are required" });
     }
+    const timestamp = Date.now().toString().slice(-6); // last 6 digits of timestamp
+    const random = Math.floor(Math.random() * 10000)
+      .toString()
+      .padStart(4, "0");
+    const trackingNumber = `ORD-${timestamp}${random}`;
     const order = await prisma.order.create({
       data: {
+        trackingNumber,
         parentId,
         shippingAddress,
         totalPrice,
@@ -60,8 +67,9 @@ export async function POST(
         })
       )
     );
-    return Res.created({ message: "Order has been created" });
+    return Res.created({ message: "Order has been created", data: order });
   } catch (error) {
-    return Res.serverError();
+    console.error(error)
+    return Res.serverError({ message: "Internal Server Error" });
   }
 }

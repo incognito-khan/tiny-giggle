@@ -13,8 +13,9 @@ model Admin {
   email           String     @unique
   password        String
   categories      Category[]
+  subCategories   SubCategory[]
   musicCategories MusicCategory[]
-  Music           Music[]
+  musicSubCategories  MuiscSubCategory[]
   milestone       Milestone[]
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
@@ -23,29 +24,69 @@ model Admin {
 }
 
 model Category {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  slug      String    @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  admin     Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
-  adminId   String    @db.ObjectId
-  products  Product[]
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  slug           String    @unique
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  admin          Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  adminId        String    @db.ObjectId
+  products       Product[]
+  subCategories  SubCategory[]
+  suppliers      Supplier[]
+  status         Status      @default(INACTIVE)
 
   @@map("categories")
 }
 
+model SubCategory {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  name        String  
+  slug        String      @unique
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  admin       Admin       @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  adminId     String      @db.ObjectId
+  parent      Category    @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  parentId    String      @db.ObjectId
+  products    Product[]
+  suppliers   Supplier[]
+  status      Status      @default(INACTIVE)
+
+  @@map("sub_categories")
+}
+
 model MusicCategory {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  slug      String    @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  admin     Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
-  adminId   String    @db.ObjectId
-  musics    Music[]
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  slug           String    @unique
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  admin          Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  adminId        String    @db.ObjectId
+  musics         Music[]
+  subCategories  MuiscSubCategory[]
+  status         Status @default(INACTIVE)
+  artists        Artist[]
 
   @@map("music_categories")
+}
+
+model MuiscSubCategory {
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
+  name        String       
+  slug        String           @unique
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  admin       Admin            @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  adminId     String           @db.ObjectId
+  parent      MusicCategory    @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  parentId    String           @db.ObjectId
+  music       Music[]
+  status      Status           @default(INACTIVE)
+  artists     Artist[]
+
+  @@map("music_sub_categories")
 }
 
 model Product {
@@ -61,6 +102,12 @@ model Product {
   updatedAt     DateTime    @updatedAt
   category      Category    @relation(fields: [categoryId], references: [id])
   categoryId    String      @db.ObjectId
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
+  subCategoryId String      @db.ObjectId
+
+  listedById    String?   @db.ObjectId
+  listedBy      Supplier?   @relation(fields: [listedById], references: [id], onDelete: Cascade)
+
   orderProducts OrderItem[]
   cartItems     CartItem[]
 
@@ -98,6 +145,7 @@ model CartItem {
 
 model Order {
   id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  trackingNumber  String        @unique
   parent          Parent        @relation(fields: [parentId], references: [id])
   parentId        String        @db.ObjectId
   shippingAddress String
@@ -136,6 +184,7 @@ model Parent {
   parentOTP  ParentOTP[]
   issues     Issue[]
   comments   Comment[]
+  country    Country?
 
   children           Child[]           @relation(fields: [childIds], references: [id])
   childIds           String[]          @db.ObjectId
@@ -143,6 +192,7 @@ model Parent {
   chats              Chat[]
   chatParticipants   ChatParticipant[]
   milestoneProgress  ChildMilestoneProgress[]
+  queries            Query[]
 
   folders          Folder[] @relation("ParentFolders") 
   uploadedImages   Image[]  @relation("ParentImages")
@@ -153,6 +203,69 @@ model Parent {
   orders           Order[]
 
   @@map("parents")
+}
+
+model Supplier {
+  id                 String       @id @default(auto()) @map("_id") @db.ObjectId
+  name               String
+  password           String
+  cnic               String
+  email              String       @unique
+  country            String
+  state              String
+  city               String
+  status             Status      @default(INACTIVE)
+  subscription       String?
+  category           Category     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId         String       @db.ObjectId
+  subCategory        SubCategory  @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
+  subCategoryId      String       @db.ObjectId
+  products           Product[]
+  
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@map("supplier")
+}
+
+model Artist {
+  id                 String       @id @default(auto()) @map("_id") @db.ObjectId
+  name               String
+  password           String
+  cnic               String
+  email              String       @unique
+  country            String
+  state              String
+  city               String
+  status             Status      @default(INACTIVE)
+  subscription       String?
+  category           MusicCategory     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId         String       @db.ObjectId
+  subCategory        MuiscSubCategory  @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
+  subCategoryId      String       @db.ObjectId
+  music              Music[]
+  
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@map("artist")
+}
+
+model Query {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  email           String
+  subject         String
+  message         String
+  status          QueryStatus  @default(PENDING)
+  priority        Priority     @default(LOW)
+  parent          Parent       @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  parentId        String       @db.ObjectId
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@map("query")
 }
 
 model Activity {
@@ -196,10 +309,13 @@ model Music {
   thumbnail String?
 
   uploadedById String?   @db.ObjectId
-  uploadedBy   Admin?   @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  uploadedBy   Artist?   @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
 
   category      MusicCategory?    @relation(fields: [categoryId], references: [id])
   categoryId    String?      @db.ObjectId
+
+  subCategory   MuiscSubCategory @relation(fields: [subCategoryId], references: [id])
+  subCategoryId String      @db.ObjectId
 
   favorites     Favorite[]
 
@@ -494,6 +610,23 @@ model ChildMilestoneProgress {
 
   @@unique([childId, subMilestoneId]) // prevent duplicates
   @@map("child_milestone_progress")
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+enum QueryStatus {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
 }
 
 enum AdministrationSite {

@@ -9,10 +9,10 @@ const initialState = {
 
 export const createProduct = createAsyncThunk(
     "product/createProduct",
-    async ({ setLoading, categoryId, body }) => {
+    async ({ setLoading, categoryId, body, subCategoryId }) => {
         try {
             setLoading(true);
-            const { data } = await POST(`/categories/${categoryId}/products`, body);
+            const { data } = await POST(`/categories/${categoryId}/products/sub/${subCategoryId}`, body);
             toast.success("Product Created Successfully");
             return data.data;
         } catch (err) {
@@ -30,6 +30,22 @@ export const getAllProducts = createAsyncThunk(
         try {
             setLoading(true);
             const { data } = await GET(`/products?search=${search || ""}`);
+            return data.data;
+        } catch (err) {
+            toast.error(err.response?.data || "Fetching Products Failed")
+            return rejectWithValue(err.response?.data || "Fetching Products Failed");
+        } finally {
+            setLoading(false);
+        }
+    }
+);
+
+export const getAllParentProducts = createAsyncThunk(
+    "product/getAllParentProducts",
+    async ({ setLoading, search, parentId }) => {
+        try {
+            setLoading(true);
+            const { data } = await GET(`/parents/${parentId}/products?search=${search || ""}`);
             return data.data;
         } catch (err) {
             toast.error(err.response?.data || "Fetching Products Failed")
@@ -84,6 +100,9 @@ const productSlice = createSlice({
                 state.products.unshift(action.payload);
             })
             .addCase(getAllProducts.fulfilled, (state, action) => {
+                state.products = action.payload;
+            })
+            .addCase(getAllParentProducts.fulfilled, (state, action) => {
                 state.products = action.payload;
             })
             .addCase(updateProduct.fulfilled, (state, action) => {

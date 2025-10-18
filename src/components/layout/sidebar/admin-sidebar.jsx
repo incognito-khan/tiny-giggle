@@ -1,84 +1,223 @@
-"use client"
-import { Search, Plus, Edit, Trash2, Home, Package, ShoppingCart, Archive, Users, Settings, LogOut, Music, Milestone, BriefcaseMedical } from "lucide-react"
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { useDispatch } from "react-redux"
-import { logout } from "@/store/slices/authSlice"
+"use client";
+
+import { useState } from "react";
+import {
+  Home,
+  Package,
+  ShoppingCart,
+  Archive,
+  Users,
+  Settings,
+  LogOut,
+  Music,
+  Milestone,
+  BriefcaseMedical,
+  ChevronDown,
+  ChevronUp,
+  Boxes,
+  MailQuestionMark
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "@/store/slices/authSlice";
+
+// const sidebarItems = [
+//   { icon: Home, label: "Dashboard", href: "/admin-dashboard" },
+//   { icon: Milestone, label: "Milestones", href: "/admin-dashboard/milestones" },
+//   { icon: BriefcaseMedical, label: "Vaccinations", href: "/admin-dashboard/vaccinations" },
+//   {
+//     icon: ShoppingCart,
+//     label: "Shopping",
+//     items: [
+//       { name: "Product", icon: Archive, href: "/admin-dashboard/products" },
+//       { name: "Category", icon: Package, href: "/admin-dashboard/categories" },
+//       { name: "Orders", icon: Boxes, href: "/admin-dashboard/orders" },
+//       { name: "Suppliers", icon: Users, href: "/admin-dashboard/suppliers" },
+//       { name: "Customer Queries", icon: MailQuestionMark, href: "/admin-dashboard/customer-queries" },
+//     ],
+//   },
+//   {
+//     icon: Music,
+//     label: "Music",
+//     items: [
+//       { name: "Music", icon: Package, href: "/admin-dashboard/music" },
+//       { name: "Music Category", icon: Music, href: "/admin-dashboard/music-categories" },
+//       { name: "Artists", icon: Users, href: "/admin-dashboard/artists" },
+//     ],
+//   },
+//   { icon: Archive, label: "Stock", href: "/admin-dashboard/stock" },
+// ];
 
 const sidebarItems = [
-  { icon: Home, label: "Dashboard", active: false, href: "" },
-  { icon: Package, label: "Category", active: false, href: "/admin-dashboard/categories" },
-  { icon: Music, label: "Music Category", active: false, href: "/admin-dashboard/music-categories" },
-  { icon: Archive, label: "Products", active: false, href: "/admin-dashboard/products" },
-  { icon: Music, label: "Music", active: false, href: "/admin-dashboard/music" },
-  { icon: Milestone, label: "Milestones", active: false, href: "/admin-dashboard/milestones" },
-  { icon: BriefcaseMedical, label: "Vaccinations", active: false, href: "/admin-dashboard/vaccinations" },
-  { icon: ShoppingCart, label: "Shopping", active: false, href: "" },
-  { icon: Archive, label: "Stock", active: false, href: "" },
-  { icon: Users, label: "Supplier", active: false, href: "" },
-]
+  { icon: Home, label: "Dashboard", href: "/admin-dashboard", roles: ["admin", "supplier", "artist"] },
+  { icon: Milestone, label: "Milestones", href: "/admin-dashboard/milestones", roles: ["admin"] },
+  { icon: BriefcaseMedical, label: "Vaccinations", href: "/admin-dashboard/vaccinations", roles: ["admin"] },
+
+  {
+    icon: ShoppingCart,
+    label: "Shopping",
+    roles: ["admin", "supplier"],
+    items: [
+      { name: "Product", icon: Archive, href: "/admin-dashboard/products", roles: ["admin", "supplier"] },
+      { name: "Category", icon: Package, href: "/admin-dashboard/categories", roles: ["admin"] },
+      { name: "Orders", icon: Boxes, href: "/admin-dashboard/orders", roles: ["admin", "supplier"] },
+      { name: "Suppliers", icon: Users, href: "/admin-dashboard/suppliers", roles: ["admin"] },
+      { name: "Customer Queries", icon: MailQuestionMark, href: "/admin-dashboard/customer-queries", roles: ["admin"] },
+    ],
+  },
+  {
+    icon: Music,
+    label: "Music",
+    roles: ["admin", "artist"],
+    items: [
+      { name: "Music", icon: Package, href: "/admin-dashboard/music", roles: ["admin", "artist"] },
+      { name: "Music Category", icon: Music, href: "/admin-dashboard/music-categories", roles: ["admin"] },
+      { name: "Artists", icon: Users, href: "/admin-dashboard/artists", roles: ["admin"] },
+    ],
+  },
+  { icon: Archive, label: "Stock", href: "/admin-dashboard/stock", roles: ["admin", "supplier"] },
+];
+
 
 export function AdminSidebar() {
-  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+  const pathname = usePathname() || "";
   const router = useRouter();
+  const dispatch = useDispatch();
+  const [openSections, setOpenSections] = useState({});
 
-  const pathname = usePathname()
+  // ✅ Improved matching logic
+  const matches = (href) => {
+    if (!href) return false;
+    if (href === "/admin-dashboard") {
+      // Dashboard only active for exact match
+      return pathname === href;
+    }
+    // Others active for nested paths
+    return pathname === href || pathname.startsWith(href + "/");
+  };
 
-  const isActive = (href) => {
-    return pathname === href;
-  }
+  const filteredItems = sidebarItems
+  .filter(item => item.roles?.includes(user?.role))
+  .map(item => {
+    if (item.items) {
+      return {
+        ...item,
+        items: item.items.filter(sub => sub.roles?.includes(user?.role))
+      };
+    }
+    return item;
+  });
+
+  const toggleSection = (label) => {
+    setOpenSections((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
 
   const handleLogout = () => {
-      dispatch(logout({ router }));
-    };
+    dispatch(logout({ router }));
+  };
+
   return (
-    <div className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col min-h-screen">
+    <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col min-h-screen">
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="logo" />
+          <img src="/logo.png" alt="logo" className="h-7 object-contain" />
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4">
-        <div className="space-y-5">
-          {sidebarItems.map((item, index) => {
-            const active = isActive(item.href)
+      {/* Nav */}
+      <nav className="flex-1 p-4 overflow-y-auto">
+        <ul className="space-y-2">
+          {filteredItems.map((item, index) => {
+            const hasItems = Array.isArray(item.items) && item.items.length > 0;
+            const simpleActive = item.href ? matches(item.href) : false;
+            const childActive = hasItems ? item.items.some((c) => matches(c.href)) : false;
+            const isOpen = openSections[item.label] ?? childActive;
+            const parentActive = simpleActive || childActive;
+
             return (
-              <ul className="space-y-4" key={index}>
-                <li>
-                  <Link href={item.href}>
-                    <div>
-                      <button
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${active
-                          ? "bg-secondary text-sidebar-primary-foreground"
-                          : "text-sidebar-foreground hover:bg-secondary hover:text-sidebar-primary-foreground"
-                          }`}
-                      >
+              <li key={index} className="space-y-1">
+                {hasItems ? (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => toggleSection(item.label)}
+                      className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left transition-colors ${parentActive || isOpen
+                        ? "bg-secondary text-sidebar-primary-foreground"
+                        : "text-sidebar-foreground hover:bg-secondary hover:text-sidebar-primary-foreground"
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
                         <item.icon className="w-5 h-5" />
                         <span className="font-medium">{item.label}</span>
-                      </button>
-                    </div>
+                      </div>
+                      {isOpen ? (
+                        <ChevronUp className="w-4 h-4 text-gray-400" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-gray-400" />
+                      )}
+                    </button>
+
+                    {isOpen && (
+                      <div className="ml-9 mt-1 space-y-1">
+                        {item.items.map((sub, sidx) => {
+                          const active = matches(sub.href);
+                          return (
+                            <div key={sidx} className={`flex items-center gap-3 pl-3 ${active ? "bg-pink-100 text-black" : "text-gray-600 hover:bg-pink-50"
+                              }`}>
+                              <div>
+                                <sub.icon className="w-4 h-4" />
+                              </div>
+                              <Link
+                                key={sidx}
+                                href={sub.href}
+                                className={`block px-3 py-1.5 rounded-md text-sm transition-colors `}
+                              >
+                                {sub.name}
+                              </Link>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    href={item.href || "#"}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${simpleActive
+                      ? "bg-secondary text-sidebar-primary-foreground"
+                      : "text-sidebar-foreground hover:bg-secondary hover:text-sidebar-primary-foreground"
+                      }`}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span className="font-medium">{item.label}</span>
                   </Link>
-                </li>
-              </ul>
-            )
+                )}
+              </li>
+            );
           })}
-        </div>
+        </ul>
       </nav>
 
-      {/* Bottom section */}
+      {/* Bottom Section */}
       <div className="p-4 border-t border-sidebar-border space-y-2">
         <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sidebar-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground transition-colors">
           <Settings className="w-5 h-5" />
           <span className="font-medium">Settings</span>
         </button>
-        <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sidebar-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground transition-colors" onClick={handleLogout}>
+
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sidebar-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground transition-colors"
+        >
           <LogOut className="w-5 h-5" />
           <span className="font-medium">Log out</span>
         </button>
       </div>
-    </div>
-  )
+    </aside>
+  );
 }
+
+

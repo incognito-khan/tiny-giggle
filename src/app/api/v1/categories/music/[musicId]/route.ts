@@ -35,6 +35,12 @@ export async function GET(
                         name: true,
                         slug: true
                     }
+                },
+                subCategory: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
                 }
             }
         });
@@ -86,7 +92,7 @@ export async function PATCH(
             return Res.badRequest({ message: "musicId is required" });
         }
         const body = await req.json();
-        const { title, type, price, thumbnail, categoryId } = body;
+        const { title, type, price, thumbnail, categoryId, subCategoryId } = body;
         if (!title || !type) {
             return Res.badRequest({ message: "Please provide all required fields" });
         }
@@ -102,7 +108,8 @@ export async function PATCH(
                 type,
                 price: type === 'PAID' ? price : 0,
                 thumbnail,
-                categoryId
+                categoryId,
+                subCategoryId
             },
             select: {
                 id: true,
@@ -121,6 +128,12 @@ export async function PATCH(
                     }
                 },
                 category: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+                subCategory: {
                     select: {
                         id: true,
                         name: true

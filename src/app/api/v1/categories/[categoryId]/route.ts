@@ -18,6 +18,19 @@ export async function GET(
         id: true,
         name: true,
         slug: true,
+        status: true,
+        subCategories: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            status: true,
+            createdAt: true,
+            _count: {
+              select: { products: true },
+            },
+          }
+        }
       },
     });
     return Res.success({
@@ -49,6 +62,15 @@ export async function DELETE(
       const categoryProducts = await prisma.product.findMany({
         where: { categoryId: categoryId },
       });
+      const subCategories = await prisma.subCategory.findMany({
+        where: { parentId: categoryId }
+      })
+
+      if (subCategories.length > 0) {
+        await prisma.subCategory.deleteMany({
+          where: { parentId: categoryId }
+        })
+      }
 
       if (categoryProducts.length > 0) {
         await prisma.product.deleteMany({
@@ -75,6 +97,16 @@ export async function DELETE(
       const categoryMusic = await prisma.music.findMany({
         where: { categoryId: categoryId },
       });
+
+      const subCategories = await prisma.muiscSubCategory.findMany({
+        where: { parentId: categoryId }
+      })
+
+      if (subCategories.length > 0) {
+        await prisma.muiscSubCategory.deleteMany({
+          where: { parentId: categoryId }
+        })
+      }
 
       if (categoryMusic.length > 0) {
         await prisma.music.deleteMany({
@@ -114,22 +146,43 @@ export async function PATCH(
     if (!categoryId) {
       return Res.badRequest({ message: "Category ID is required" });
     }
-    
+
     const existingCategory = await prisma.category.findUnique({
       where: { id: categoryId },
     });
 
     if (existingCategory) {
-      const { name, slug } = await req.json();
+      const { name, slug, status } = await req.json();
 
-      if (!name || !slug) {
-        return Res.badRequest({ message: "Name and Slug are required" });
+      if (!name || !slug || !status) {
+        return Res.badRequest({ message: "Name, Status and Slug are required" });
       }
 
       const updatedCategory = await prisma.category.update({
         where: { id: categoryId },
-        data: { name, slug },
-        select: { id: true, name: true, slug: true, _count: { select: { products: true } }, createdAt: true }
+        data: { name, slug, status },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          status: true,
+          _count: {
+            select: { products: true }
+          },
+          createdAt: true,
+          subCategories: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              status: true,
+              createdAt: true,
+              _count: {
+                select: { products: true },
+              },
+            }
+          }
+        }
       });
 
       return Res.success({
@@ -143,14 +196,14 @@ export async function PATCH(
     });
 
     if (existingMusicCategory) {
-      const { name, slug } = await req.json();
-      if (!name || !slug) {
-        return Res.badRequest({ message: "Name and Slug are required" });
+      const { name, slug, status } = await req.json();
+      if (!name || !slug || !status) {
+        return Res.badRequest({ message: "Name, Status and Slug are required" });
       }
       const updatedCategory = await prisma.musicCategory.update({
         where: { id: categoryId },
-        data: { name, slug },
-        select: { id: true, name: true, slug: true, _count: { select: { musics: true } }, createdAt: true }
+        data: { name, slug, status },
+        select: { id: true, name: true, slug: true, status: true, _count: { select: { musics: true } }, createdAt: true }
       });
       return Res.success({
         message: "Category updated successfully",

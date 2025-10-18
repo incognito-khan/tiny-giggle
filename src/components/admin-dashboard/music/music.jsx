@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { getAllMusics, createMusic, delMusic, updateMusic } from "@/store/slices/musicSlice"
+import { getAllMusics, createMusic, delMusic, updateMusic, getAllArtistMusics } from "@/store/slices/musicSlice"
 import { getAllMusicCategories } from "@/store/slices/categorySlice"
 import { uploadImage, uploadAudio } from "@/store/slices/mediaSlice"
 import { useDispatch, useSelector } from "react-redux"
@@ -39,11 +39,14 @@ export function Music() {
   const [musicFile, setMusicFile] = useState(null);
   const [musicPreview, setMusicPreview] = useState(null);
   const [categoryId, setCategoryId] = useState(undefined);
+  const [subCategoryId, setSubCategoryId] = useState("");
   const [filteredMusics, setFilteredMusics] = useState(musics);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedFilterCategory, setSelectedFilterCategory] = useState(undefined);
   const dispatch = useDispatch();
+
+  const selectedCategory = categories?.find(cat => cat.id === categoryId);
 
   const handleCategoryFilter = (categoryId) => {
     if (!categoryId) {
@@ -76,6 +79,11 @@ export function Music() {
       return;
     }
 
+    if (!subCategoryId) {
+      toast.error("Please select a sub category");
+      return;
+    }
+
     if (!newMusic.title || !newMusic.type) {
       toast.error("Please fill all the fields");
       return;
@@ -105,7 +113,7 @@ export function Music() {
       uploadedBy: user?.id
     }
 
-    dispatch(createMusic({ setLoading, categoryId, formData: body }))
+    dispatch(createMusic({ setLoading, categoryId, subCategoryId, formData: body }))
     setIsCreateMusic(false)
     setNewMusic({
       title: "",
@@ -159,7 +167,11 @@ export function Music() {
   }
 
   const gettingAllMusic = () => {
-    dispatch(getAllMusics({ setLoading, search }))
+    if (user?.role === 'artist') {
+      dispatch(getAllArtistMusics({ setLoading, search, adminId: user?.id }))
+    } else {
+      dispatch(getAllMusics({ setLoading, search }))
+    }
   }
 
   const gettingAllCategories = () => {
@@ -222,7 +234,7 @@ export function Music() {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <header className="bg-background border-b border-border px-6 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Products</h1>
+          <h1 className="text-2xl font-bold text-foreground">Music</h1>
 
           <div className="flex items-center gap-4">
             <div className="relative">
@@ -246,11 +258,13 @@ export function Music() {
             {/* Category List Header */}
             <div className="p-6 border-b border-border">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-card-foreground">Products List</h2>
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => setIsCreateMusic(true)}>
+                <h2 className="text-xl font-semibold text-card-foreground">Music List</h2>
+                {user?.role === 'artist' && (
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => setIsCreateMusic(true)}>
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Product
+                  Add Music
                 </Button>
+                )}
               </div>
 
               {/* Filters */}
@@ -294,7 +308,8 @@ export function Music() {
                       <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">TITLE</th>
                       <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">PRICE</th>
                       <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">CATEGORY</th>
-                      <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">UPLOADED BY</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">SUB CATEGORY</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">ARTIST</th>
                       <th className="text-left p-4 font-medium text-muted-foreground uppercase text-sm">ACTION</th>
                     </tr>
                   </thead>
@@ -318,6 +333,7 @@ export function Music() {
                         <td className="p-4 text-card-foreground">{music?.title}</td>
                         <td className="p-4 text-card-foreground">{music?.type !== 'FREE' ? music?.price : music?.type}</td>
                         <td className="p-4 text-card-foreground">{music?.category?.name}</td>
+                        <td className="p-4 text-card-foreground">{music?.subCategory?.name}</td>
                         <td className="p-4 text-card-foreground">{music?.uploadedBy?.name}</td>
                         <td className="p-4">
                           <div className="flex items-center gap-2">
@@ -335,6 +351,7 @@ export function Music() {
                                 setIsEditMusic(true);
                                 setPreview(music?.thumbnail);
                                 setCategoryId(music?.category?.id);
+                                setSubCategoryId(music?.subCategory?.id);
                               }}
                             >
                               <Edit className="w-4 h-4" />
@@ -355,7 +372,7 @@ export function Music() {
             {filteredMusics?.length === 0 && !loading && (
               <div className="p-6">
                 <p className="text-lg font-medium text-gray-500 text-center">
-                  No Products Found
+                  No Music Found
                 </p>
               </div>
             )}
@@ -367,11 +384,11 @@ export function Music() {
       <Dialog open={isEditMusic} onOpenChange={setIsEditMusic}>
         <DialogContent className="sm:max-w-md rounded-xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-gray-800">Edit Product</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-gray-800">Edit Music</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label className="mb-2">Product Image</Label>
+              <Label className="mb-2">Music Thubmbail</Label>
               <div className="flex items-center justify-between w-full border rounded-lg px-3 py-2">
                 <label
                   htmlFor="file-upload"
@@ -466,6 +483,43 @@ export function Music() {
               </Select>
             </div>
 
+            <div>
+              <Label htmlFor="subCategory" className="text-sm font-medium text-gray-700">
+                Sub Category
+              </Label>
+              <Select
+                value={subCategoryId}
+                onValueChange={(value) => setSubCategoryId(value)}
+                disabled={!categoryId || !selectedCategory?.subCategories?.length}
+                className="w-full"
+              >
+                <SelectTrigger className="mt-1 rounded-full w-full">
+                  <SelectValue
+                    placeholder={
+                      !categoryId
+                        ? "Select Category first"
+                        : selectedCategory?.subCategories?.length
+                          ? "Select Sub Category"
+                          : "No Sub Categories Found"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {selectedCategory?.subCategories?.length > 0 ? (
+                    selectedCategory.subCategories.map((sub) => (
+                      <SelectItem key={sub.id} value={sub.id}>
+                        {sub.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                      No subcategories available
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="flex gap-3 pt-4">
               <Button
                 variant="outline"
@@ -479,7 +533,7 @@ export function Music() {
                 onClick={handleEditMusic}
               >
                 <UserPlus className="w-4 h-4 mr-2" />
-                Update Product
+                Update Music
               </Button>
             </div>
           </div>
@@ -605,6 +659,43 @@ export function Music() {
             </div>
 
             <div>
+              <Label htmlFor="subCategory" className="text-sm font-medium text-gray-700">
+                Sub Category
+              </Label>
+              <Select
+                value={subCategoryId}
+                onValueChange={(value) => setSubCategoryId(value)}
+                disabled={!categoryId || !selectedCategory?.subCategories?.length}
+                className="w-full"
+              >
+                <SelectTrigger className="mt-1 rounded-full w-full">
+                  <SelectValue
+                    placeholder={
+                      !categoryId
+                        ? "Select Category first"
+                        : selectedCategory?.subCategories?.length
+                          ? "Select Sub Category"
+                          : "No Sub Categories Found"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {selectedCategory?.subCategories?.length > 0 ? (
+                    selectedCategory.subCategories.map((sub) => (
+                      <SelectItem key={sub.id} value={sub.id}>
+                        {sub.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                      No subcategories available
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
               <Label htmlFor="price" className="text-sm font-medium text-gray-700">
                 Price
               </Label>
@@ -631,7 +722,7 @@ export function Music() {
                 onClick={handleCreateMusic}
               >
                 <UserPlus className="w-4 h-4 mr-2" />
-                Create Product
+                Create Music
               </Button>
             </div>
           </div>
